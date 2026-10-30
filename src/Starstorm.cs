@@ -62,6 +62,10 @@ namespace MoreQuality
         {
             var wait = WaitUntilReady("Quality");
             while (wait.MoveNext()) yield return null;
+            // The Hallowed Concepts items come from the game's own DLC content pack.
+            var timer = Stopwatch.StartNew();
+            while (RoR2.DLC4Content.Items.HexCurse == null && timer.Elapsed.TotalSeconds < 180) yield return null;
+            if (RoR2.DLC4Content.Items.HexCurse == null) MoreQualityPlugin.Log.LogError("Hallowed Concepts content never loaded; its items won't get quality.");
             MoreQualityPlugin.Log.LogInfo("Starstorm2 finished loading; starting Quality's content load.");
             while (qualityLoad.MoveNext()) yield return qualityLoad.Current;
         }

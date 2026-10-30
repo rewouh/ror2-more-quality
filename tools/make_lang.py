@@ -263,6 +263,150 @@ EQUIPMENT["WhiteFlag"] = ("A bigger flag that heals allies.", per_tier(
     [util("15 seconds"), util("15 seconds"), util("15 seconds"), q("25 seconds")],
     [q("2%", heal), q("4%", heal), q("7%", heal), q("10%", heal)]))
 
+# ================================================================ HALLOWED CONCEPTS
+# Remove this part if Quality ever covers the DLC itself.
+# Keyed by ItemDef.name (Quality builds its tokens from that), not the DLC's own token names.
+
+death = style("cDeath")
+
+ITEMS["BlightZone"] = ("Enemies dying in the cloud feed the Teleporter.", add(per_tier(
+    "Enemies that die inside the cloud add {0} " + util("Teleporter charge") + ".{1}",
+    [q("0.5%"), q("0.75%"), q("1%"), q("1.5%")],
+    ["", "", "", " They also " + q("burst", dmg) + ", inflicting " + dmg("Blight") + " on enemies within 8m."])))
+
+ITEMS["LowHealthOrbSpawner"] = ("Can save an item without being used up.", add(per_tier(
+    "When the Crucible saves an item, {0} chance it isn't used up itself.{1}",
+    [q("15%"), q("25%"), q("35%"), q("50%")],
+    ["", "", "", " When consumed, it " + q("restores itself") + " after 3 minutes."])))
+
+ITEMS["LowHealthOrbSpawnerConsumed"] = ("", [BASE] * 4)
+
+ITEMS["RechargeableJump"] = ("Unused jumps also grant stats.", add(per_tier(
+    "Each unused jump also grants {0}.",
+    [q("+4%") + " movement speed",
+     q("+4%") + " movement speed and " + q("+4%", dmg) + " attack speed",
+     q("+4%") + " movement speed, " + q("+4%", dmg) + " attack speed and " + q("+4%", dmg) + " damage",
+     q("+4%") + " movement speed, " + q("+4%", dmg) + " attack speed, " + q("+4%", dmg) + " damage, " + q("+2%", dmg) + " crit and " + q("+1", heal) + " regeneration"])))
+
+ITEMS["CausticPheromones"] = ("Brand sooner; grow stronger with every brand.", add(per_tier(
+    "Brands after {0} hits and lasts {1} longer. Gain {2} " + dmg("damage") + " and " + dmg("attack speed") + " for every enemy you have branded.{3}",
+    [q("8"), q("7"), q("6"), q("4")], [q("1s"), q("2s"), q("3s"), q("5s")],
+    [q("+3%", dmg), q("+5%", dmg), q("+7%", dmg), q("+10%", dmg)],
+    ["", "", " With " + q("5") + " enemies branded at once, they are all " + dmg("executed") + " (not bosses).",
+     " With " + q("5") + " enemies branded at once, they are all " + dmg("executed") + " (not bosses). Branded enemies take " + q("double", dmg) + " damage from their allies."])))
+
+ITEMS["DreamDemon"] = ("Demons jump to a new host.", add(per_tier(
+    "When a haunted enemy dies before its demon exploded, {0} chance the demon jumps to a nearby enemy, keeping its charge.",
+    [q("25%"), q("40%"), q("60%"), q("90%")])))
+
+ITEMS["SprintDamage"] = ("Skulls stun, longer the faster you go.", add(per_tier(
+    "Skulls " + util("stun") + " the enemies they hit for {0}, multiplied by how far above sprint speed you are (up to 6s).",
+    [q("0.5s"), q("0.8s"), q("1.2s"), q("2s")])))
+
+ITEMS["SanguineChalice"] = ("More bleed, more healing.", add(per_tier(
+    "{0} " + dmg("bleed chance") + ". Each bleed tick heals {1} more of your " + heal("maximum health") + ".{2}",
+    [q("+5%", dmg), q("+10%", dmg), q("+15%", dmg), q("+25%", dmg)],
+    [q("0.1%", heal), q("0.25%", heal), q("0.4%", heal), q("0.7%", heal)],
+    ["", "", "", " At full health, the healing becomes " + q("barrier", heal) + "."])))
+
+ITEMS["GhostBlades"] = ("Bigger, deadlier blades.", add(per_tier(
+    "Blades are {0} bigger and deal {1} damage.{2}",
+    [q("x1.5"), q("x2"), q("x3"), q("x5")], [q("x1.5", dmg), q("x2", dmg), q("x3", dmg), q("x5", dmg)],
+    ["", "", "", " Blade hits have a " + q("5%") + " chance to " + dmg("execute") + " (not bosses)."])))
+
+ITEMS["GoldenGoose"] = ("Recharges faster; gilded kills pay more.", add(per_tier(
+    "Recharges in {0}. Gilded enemies that die pay {1} of their gold reward on top.",
+    [q("9s"), q("8s"), q("6.5s"), q("5s")], [q("20%"), q("40%"), q("70%"), q("120%")])))
+
+ITEMS["VengefulSpirit"] = ("A bigger spirit that explodes when it dies.", add(per_tier(
+    "The spirit is {0} bigger. When it dies, it explodes in {1}: enemies take {2} base damage and allies " + heal("heal") + " {3} of their maximum health.",
+    [q("x1.25"), q("x1.5"), q("x2"), q("x3")], [q("12m"), q("15m"), q("20m"), q("30m")],
+    [q("400%", dmg), q("700%", dmg), q("1100%", dmg), q("1800%", dmg)],
+    [q("10%", heal), q("15%", heal), q("25%", heal), q("40%", heal)])))
+
+ITEMS["VengefulSpiritRageMode"] = ("", [BASE] * 4)
+
+ITEMS["VileCenser"] = ("Tendrils link enemies together.", add(per_tier(
+    "Enemies hit by the tendrils are " + util("linked") + " for 1s: damage dealt to one is shared with the others at {0}.{1}",
+    [q("10%", dmg), q("20%", dmg), q("35%", dmg), q("50%", dmg)],
+    ["", "", "", " When a linked enemy dies, each other one has a " + q("15%") + " chance to be " + dmg("executed") + " (not bosses)."])))
+
+# ---- hexes: a quality hex is worse; cleansing it guarantees a quality choice.
+CLEANSE = "\n" + Q + " Cleansing it guarantees a choice of its quality."
+
+
+def hex_line(lines):
+    return [line + CLEANSE for line in lines]
+
+
+ITEMS["SlipperyGround"] = ("Acceleration swings even lower.", hex_line(per_tier(
+    "All ground becomes " + death("slippery, hindering movement") + ". Your acceleration is reduced by " + death("40%") + " " + stack("+30% per stack") + ", swinging to {0} every " + util("3 seconds") + ".",
+    [q("55%", death), q("65%", death), q("75%", death), q("90%", death)])))
+
+ITEMS["Blindness"] = ("Even less vision.", hex_line(per_tier(
+    "Reduces your vision to {0} " + stack("-50% per stack") + ".",
+    [q("65m", death), q("40m", death), q("20m", death), q("1m", death)])))
+
+ITEMS["LowerHealing"] = ("Even less healing.", hex_line(per_tier(
+    "All " + heal("healing") + " is reduced by {0} " + stack("+40% per stack") + ".",
+    [q("45%", death), q("50%", death), q("60%", death), q("99%", death)])))
+
+ITEMS["ShareItemsWithEnemies"] = ("Shares more often.", hex_line(per_tier(
+    "Every {0}, " + death("share a copy") + " of " + dmg("1") + " " + stack("+1 per stack") + " random item from your inventory with {1}.",
+    [q("13 seconds"), q("11 seconds"), q("9 seconds"), q("6 seconds")],
+    [util("3 enemies"), util("3 enemies"), util("3 enemies"), q("5 enemies")])))
+
+ITEMS["HexHaunting"] = ("Stronger Poltergeists.", hex_line(add(per_tier(
+    "Poltergeists deal {0} damage and have {1} chance to gain a random boon.{2}",
+    [q("+25%", death), q("+50%", death), q("+100%", death), q("+200%", death)],
+    [q("25%"), q("50%"), q("75%"), q("100%")],
+    ["", "", "", " They are " + q("immune") + " for 5s when they appear."]))))
+
+ITEMS["WeakAssHamstring"] = ("Jumps cost more height.", hex_line(per_tier(
+    "{0} Your jump height " + util("returns gradually") + " over " + util("6s") + " " + stack("+6 per stack") + ". Additionally, " + death("reduces") + " the amount of distance you can " + death("fall") + " without taking " + death("fall damage") + ".",
+    ["Jumping " + death("reduces") + " your jump height by " + q("30%", death) + ".",
+     "Jumping " + death("reduces") + " your jump height by " + q("35%", death) + ".",
+     "Jumping " + death("reduces") + " your jump height by " + q("45%", death) + ".",
+     q("You can no longer jump.", death)])))
+
+ITEMS["RoamingItemDisable"] = ("More items disabled.", hex_line(per_tier(
+    "Every " + util("30 seconds") + ", {0} of the items in your inventory " + stack("+10% per stack") + " become " + death("disabled") + ".",
+    [q("15%", death), q("25%", death), q("35%", death), q("50%", death)])))
+
+ITEMS["Mimicry"] = ("Faster, stronger Mimics.", hex_line(add(per_tier(
+    "Mimics gain {0} " + dmg("damage") + " and " + util("movement speed") + ".{1}",
+    [q("+20%", death), q("+40%", death), q("+70%", death), q("+100%", death)],
+    ["", "", "", " They are " + q("immune") + " for 5s when they appear."]))))
+
+ITEMS["RandomDebuffOnInteract"] = ("Debuffs more likely, and more of them.", hex_line(per_tier(
+    "Activating an interactable has a {0} chance to give {1} " + stack("+1 per stack") + " " + death("random debuff") + ". Shrines of Chance guarantee a " + death("random debuff") + " on failure and none on success.",
+    [q("60%"), q("70%"), q("80%"), q("100%")], [death("1"), death("1"), q("2", death), q("4", death)])))
+
+ITEMS["BarrierEnemiesOnKill"] = ("More barrier for enemies.", hex_line(per_tier(
+    "Killing an enemy grants {0} " + stack("+100% per stack") + " of their maximum health as " + heal("temporary barrier") + " to " + death("all enemies") + " within " + dmg("30m") + " " + stack("+15m per stack") + ".{1}",
+    [q("125%", heal), q("150%", heal), q("200%", heal), q("300%", heal)],
+    ["", "", " They are also " + q("fully healed", heal) + ".",
+     " They are also " + q("fully healed", heal) + ", and an elite's death passes its " + q("elite powers", death) + " to them for 20s."])))
+
+ITEMS["HexCurse"] = ("Even less health.", hex_line(per_tier(
+    "Reduces your " + heal("maximum health") + " by {0} " + stack("+30% per stack") + ".",
+    [q("35%", death), q("40%", death), q("50%", death), q("80%", death)])))
+
+ITEMS["OutOfTPRadius"] = ("Straying is punished harder.", hex_line(add(per_tier(
+    "Outside the charging Teleporter you also take {0} of your " + death("maximum health") + " per second, growing " + death("12.5%") + " every 10s.{1}",
+    [q("0.5%", death), q("0.75%", death), q("1%", death), q("1.5%", death)],
+    ["", "", " Every " + util("3s") + " outside, gain a " + q("random debuff", death) + ".",
+     " Every " + util("3s") + " outside, gain a " + q("random debuff", death) + " and have a " + q("10%", death) + " chance to be " + death("executed") + "."]))))
+
+ITEMS["IncreasedDifficulty"] = ("Difficulty rises faster.", hex_line(per_tier(
+    "Increases " + death("Difficulty") + " by {0} " + stack("+25% per stack") + ".",
+    [q("30%", death), q("35%", death), q("45%", death), q("100%", death)])))
+
+ITEMS["HexMountain"] = ("More Mountain effects.", hex_line(per_tier(
+    "The Teleporter receives {0} " + stack("+1 per stack") + " Shrine of the Mountain effects, " + death("without the extra rewards") + ".",
+    [death("1") + " (" + q("10%") + " chance of 2)", death("1") + " (" + q("25%") + " chance of 2)",
+     death("1") + " (" + q("50%") + " chance of 2)", q("3", death)])))
+
 # ---------------------------------------------------------------- buffs (LookingGlass tooltips)
 
 BUFFS = {
@@ -273,6 +417,8 @@ BUFFS = {
     "bdQualitySS2StimCrit": ("Stim: Crit", "X-4 Stimulant boost: +20% critical chance."),
     "bdQualitySS2StimRegen": ("Stim: Regeneration", "X-4 Stimulant boost: +10 health regeneration."),
     "bdQualitySS2FieldAura": ("Accelerated Field", "Field Accelerator's charging zone: +1% attack speed per stack."),
+    "bdMoreQualityInfernalFervor": ("Infernal Fervor", "Infernal Mark: more damage and attack speed for every enemy you have soul-branded."),
+    "bdMoreQualityHexEmpowered": ("Hex-Empowered", "Summoned by a quality Hex: +1% damage and movement speed per stack."),
 }
 
 
@@ -283,7 +429,7 @@ def build(entries, prefix):
         for tier, line in zip(TIERS, lines):
             assert "{" not in line and "}" not in line, name + ": leftover placeholder"
             key = prefix + "_" + name.upper() + "_" + tier
-            strings[key + "_PICKUP"] = BASE + "\n" + Q + " " + pickup
+            strings[key + "_PICKUP"] = BASE + "\n" + Q + " " + pickup if pickup else BASE
             strings[key + "_DESC"] = line
     return strings
 

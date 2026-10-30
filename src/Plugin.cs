@@ -39,10 +39,11 @@ namespace MoreQuality
             CustomBuffs.Register();
             BaseText.Register();
 
-            // Every quality effect lives in its own static class with an Init(). One failing to hook
-            // (for example after a Starstorm2 update) must not take the others down with it.
+            // Every quality effect lives in its own static class with an Init(): Starstorm2 items in
+            // MoreQuality.Items, Hallowed Concepts ones in MoreQuality.Hallowed. One failing to hook
+            // (for example after a game or Starstorm2 update) must not take the others down with it.
             var modules = typeof(MoreQualityPlugin).Assembly.GetTypes()
-                .Where(t => t.Namespace == "MoreQuality.Items" && t.IsAbstract && t.IsSealed)
+                .Where(t => (t.Namespace == "MoreQuality.Items" || t.Namespace == "MoreQuality.Hallowed") && t.IsAbstract && t.IsSealed)
                 .Select(t => t.GetMethod("Init", BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Public))
                 .Where(m => m != null);
             foreach (var init in modules)

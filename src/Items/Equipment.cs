@@ -146,6 +146,14 @@ namespace MoreQuality.Items
         private static readonly T4 UpgradeChance = new T4(5f, 8f, 12f, 20f);
         private static readonly ConditionalWeakTable<GenericPickupController, object> rolled = new ConditionalWeakTable<GenericPickupController, object>();
 
+        // Hexes and Hallowed items only get quality from the DLC's own sources.
+        private static bool DlcTierOnly(PickupIndex pickup)
+        {
+            var def = PickupCatalog.GetPickupDef(pickup);
+            var item = def != null ? ItemCatalog.GetItemDef(def.itemIndex) : null;
+            return item && (item.tier == ItemTier.Hex || item.tier == ItemTier.Cursed);
+        }
+
         internal static void Init()
         {
             Hooks.Patch(typeof(SS2.Equipments.Magnet), "Execute", typeof(Magnet), postfix: nameof(After));
@@ -162,7 +170,7 @@ namespace MoreQuality.Items
                 object seen;
                 if (rolled.TryGetValue(pickup, out seen)) continue;   // one roll per item, ever
                 rolled.Add(pickup, null);
-                if (QualityCatalog.GetQualityTier(current) != QualityTier.None || !Util.CheckRoll(UpgradeChance[tier], slot.characterBody.master)) continue;
+                if (QualityCatalog.GetQualityTier(current) != QualityTier.None || DlcTierOnly(current) || !Util.CheckRoll(UpgradeChance[tier], slot.characterBody.master)) continue;
                 var upgraded = QualityCatalog.GetPickupIndexOfQuality(current, tier);
                 if (upgraded.isValid && upgraded != current) pickup.pickupIndex = upgraded;
 #pragma warning restore 618

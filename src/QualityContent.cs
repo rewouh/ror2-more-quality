@@ -53,7 +53,16 @@ namespace MoreQuality
                 if (equipment == null) continue;
                 equipmentGroups[equipment] = args.CreateEquipmentQualityGroup(equipment);
             }
-            MoreQualityPlugin.Log.LogInfo("Registered " + itemGroups.Count + " Starstorm2 items and " + equipmentGroups.Count + " equipments with Quality.");
+            var starstormItems = itemGroups.Count;
+            MoreQualityPlugin.Log.LogInfo("Registered " + starstormItems + " Starstorm2 items and " + equipmentGroups.Count + " equipments with Quality.");
+
+            // Hallowed Concepts. Remove this part if Quality ever covers the DLC itself.
+            foreach (var item in HallowedConcepts)
+            {
+                if (item == null || itemGroups.ContainsKey(item)) continue;
+                itemGroups[item] = args.CreateItemQualityGroup(item);
+            }
+            MoreQualityPlugin.Log.LogInfo("Registered " + (itemGroups.Count - starstormItems) + " Hallowed Concepts items and hexes with Quality.");
             args.ProgressReceiver.Report(1f);
         }
 
@@ -93,6 +102,42 @@ namespace MoreQuality
                 yield return SS2Content.Items.PortableReactor;
                 yield return SS2Content.Items.SwiftSkateboard;
                 yield return SS2Content.Items.ShackledLamp;
+            }
+        }
+
+        // The 11 Hallowed items, the item two of them turn into once used, and the 14 hexes.
+        private static IEnumerable<ItemDef> HallowedConcepts
+        {
+            get
+            {
+                yield return DLC4Content.Items.BlightZone;
+                yield return DLC4Content.Items.LowHealthOrbSpawner;
+                yield return DLC4Content.Items.LowHealthOrbSpawnerConsumed;
+                yield return DLC4Content.Items.RechargeableJump;
+                yield return DLC4Content.Items.CausticPheromones;
+                yield return DLC4Content.Items.DreamDemon;
+                yield return DLC4Content.Items.SprintDamage;
+                yield return DLC4Content.Items.SanguineChalice;
+                yield return DLC4Content.Items.GhostBlades;
+                yield return DLC4Content.Items.GoldenGoose;
+                yield return DLC4Content.Items.VengefulSpirit;
+                yield return DLC4Content.Items.VengefulSpiritRageMode;
+                yield return DLC4Content.Items.VileCenser;
+
+                yield return DLC4Content.Items.SlipperyGround;
+                yield return DLC4Content.Items.Blindness;
+                yield return DLC4Content.Items.LowerHealing;
+                yield return DLC4Content.Items.ShareItemsWithEnemies;
+                yield return DLC4Content.Items.HexHaunting;
+                yield return DLC4Content.Items.WeakAssHamstring;
+                yield return DLC4Content.Items.RoamingItemDisable;
+                yield return DLC4Content.Items.Mimicry;
+                yield return DLC4Content.Items.RandomDebuffOnInteract;
+                yield return DLC4Content.Items.BarrierEnemiesOnKill;
+                yield return DLC4Content.Items.HexCurse;
+                yield return DLC4Content.Items.OutOfTPRadius;
+                yield return DLC4Content.Items.IncreasedDifficulty;
+                yield return DLC4Content.Items.HexMountain;
             }
         }
 

@@ -16,6 +16,8 @@ namespace MoreQuality
         public static BuffDef StimCrit;
         public static BuffDef StimRegen;
         public static BuffDef FieldAura;   // stacks = % attack speed
+        public static BuffDef InfernalFervor;   // Infernal Mark: stacks = % damage and attack speed
+        public static BuffDef HexEmpowered;     // hex monsters: stacks = % damage and movement speed
 
         private static readonly List<KeyValuePair<BuffDef, Func<BuffDef>>> icons = new List<KeyValuePair<BuffDef, Func<BuffDef>>>();
 
@@ -28,6 +30,8 @@ namespace MoreQuality
             StimCrit = Create("bdQualitySS2StimCrit", new Color(1f, 0.85f, 0.3f), false, false, () => RoR2Content.Buffs.FullCrit);
             StimRegen = Create("bdQualitySS2StimRegen", new Color(0.5f, 1f, 0.45f), false, false, () => RoR2Content.Buffs.MedkitHeal);
             FieldAura = Create("bdQualitySS2FieldAura", new Color(0.9f, 0.55f, 0.1f), true, false, () => RoR2Content.Buffs.AttackSpeedOnCrit);
+            InfernalFervor = Create("bdMoreQualityInfernalFervor", new Color(0.85f, 0.2f, 0.45f), true, false, () => RoR2Content.Buffs.WarCryBuff);
+            HexEmpowered = Create("bdMoreQualityHexEmpowered", new Color(0.55f, 0.25f, 0.8f), true, false, () => RoR2Content.Buffs.PowerBuff);
 
             RoR2Application.onLoad += AssignIcons;
             RecalculateStatsAPI.GetStatCoefficients += Stats;
@@ -71,6 +75,12 @@ namespace MoreQuality
             if (body.HasBuff(StimDamage)) args.damageMultAdd += 0.25f;
             if (body.HasBuff(StimCrit)) args.critAdd += 20f;
             if (body.HasBuff(StimRegen)) args.baseRegenAdd += 10f;
+            var fervor = body.GetBuffCount(InfernalFervor) / 100f;
+            args.damageMultAdd += fervor;
+            args.attackSpeedMultAdd += fervor;
+            var empowered = body.GetBuffCount(HexEmpowered) / 100f;
+            args.damageMultAdd += empowered;
+            args.moveSpeedMultAdd += empowered;
         }
     }
 }

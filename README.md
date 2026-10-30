@@ -11,7 +11,7 @@ The mod has two separate parts:
 | Part | Status |
 |---|---|
 | **Starstorm 2** items and equipment | Available (36 pickups) |
-| **Hallowed Concepts** Hallowed items and Hexes | Planned |
+| **Hallowed Concepts** Hallowed items and Hexes | Available (25 items) |
 
 ## Starstorm 2
 
@@ -75,12 +75,13 @@ Values are Uncommon / Rare / Epic / Legendary.
 
 Starstorm 2's beta items (Ice Tool, Neurotoxin Gland, Sticky Overloader, Toy Soldiers) aren't covered.
 
-## Hallowed Concepts (planned)
+## Hallowed Concepts
 
-Quality doesn't cover the DLC's new tiers yet, so MoreQuality will:
+Quality doesn't cover the DLC's new tiers yet, so MoreQuality adds them:
 
-- give the 11 **Hallowed items** quality variants with stronger effects;
-- give the 14 **Hexes** quality variants that are *worse*. The payoff comes when you cleanse them at a Hallowed Shrine: every quality Hex you drain gives the Hallowed Potential's choices a chance to be quality items.
+- The 11 **Hallowed items** get quality variants with new twists (Vengeful Spirit explodes when it dies, Vile Censer links enemies so they share damage, Infernal Mark makes you stronger for every enemy you brand, and more).
+- The 14 **Hexes** get quality variants that are *worse* (Legendary Hex of Pain takes 80% of your health, Legendary Hex of Leaping stops you jumping...). The payoff: every quality Hex you cleanse at a Hallowed Shrine **guarantees a choice of its quality** among the items it offers.
+- Quality versions only come from the DLC's own sources (Concept Reliquaries, Hallowed Shrines, Compulsions, trials), never from quality chests or printers.
 
 If Quality adds Hallowed Concepts support itself, this part will be removed from MoreQuality in favour of the official version.
 

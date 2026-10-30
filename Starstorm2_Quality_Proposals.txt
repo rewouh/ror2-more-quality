@@ -1,4 +1,4 @@
-MOREQUALITY: DESIGN DOCUMENT (v4)
+MOREQUALITY: DESIGN DOCUMENT (v5)
 =================================
 Mod versions: Starstorm2 0.6.46, Quality 0.8.5, Risk of Rain 2 with Hallowed Concepts
 Mod release:  0.1.0 (Thunderstore: Rewouh-MoreQuality), beta
@@ -6,7 +6,7 @@ Mod release:  0.1.0 (Thunderstore: Rewouh-MoreQuality), beta
 The mod adds Quality tiers to items Quality doesn't cover itself, in two independent parts:
 
   PART 1  Starstorm 2 items and equipment ............. implemented (36 pickups)
-  PART 2  Hallowed Concepts Hallowed items and Hexes ... proposals, not implemented yet
+  PART 2  Hallowed Concepts Hallowed items and Hexes ... implemented, being tested
 
 Part 2 is kept separate on purpose: if Quality adds Hallowed Concepts support itself, that
 whole part is removed from MoreQuality.
@@ -261,7 +261,7 @@ Toy Soldiers), lunar items, its custom-tier items and elite aspects.
 
 
 #####################################################################
-PART 2: HALLOWED CONCEPTS                         (proposals, not built)
+PART 2: HALLOWED CONCEPTS                    (implemented, being tested)
 #####################################################################
 
 Remove this whole part if Quality adds Hallowed Concepts support itself.
@@ -270,7 +270,7 @@ Remove this whole part if Quality adds Hallowed Concepts support itself.
 WHAT THE DLC ADDS
 =================
 Two new item tiers:
-  - Hexes (14): pure maluses, no upside. They can't be scrapped.
+  - Hexes (14): pure maluses, no upside. They can't be scrapped or printed.
   - Hallowed items (11, purple): very strong items, obtained mainly by getting rid of Hexes.
 
 How Hexes are obtained:
@@ -296,149 +296,155 @@ How Hallowed items are obtained:
   - The Purify Page of the N'tormat: turns 3 Hexes into an item.
 
 
-THE IDEA
-========
-Hallowed items get quality like any item: stronger effects, and sometimes a twist.
+WHERE QUALITY VERSIONS COME FROM
+================================
+Only from the DLC's own sources above, through Quality's normal chance for a drop to be a
+quality item. Quality's quality chests and printers never offer Hexes or Hallowed items
+(they draw from the white/green/red/boss/lunar/void/equipment lists only), and Simple
+Magnet's upgrade skips both tiers.
 
-Hexes get quality too, but the other way round: a quality Hex is a WORSE Hex. The payoff
-comes when you cleanse it. Each quality Hex drained at a Hallowed Shrine gives the
-options of the Hallowed Potential a chance to be quality items:
-    each option rolls once, with a chance equal to the total from the drained Hexes:
-        Uncommon Hex 10%, Rare Hex 20%, Epic Hex 35%, Legendary Hex 50% (capped at 100%)
-    on success, the option's quality is the tier of one of the drained quality Hexes,
-    picked at random weighted by those same numbers.
-The Purify Page works the same way with its 3 Hexes.
 
-So carrying a Legendary Hex for a few stages is a real gamble with a real reward.
-
-How quality Hexes appear: through Quality's normal quality roll on drops, if it applies
-to the Hex tier. If it doesn't, MoreQuality rolls it on Concept Reliquaries and the Hand
-of Death itself.
-
-To check before building:
-  - Whether Quality can generate variants for the Hex and Hallowed tiers (colours,
-    icons, names) the way it does for normal tiers.
-  - Whether Quality's drop roll covers those tiers.
-  - Whether the Hallowed Potential's options can be swapped for quality versions.
+THE CLEANSING PAYOFF
+====================
+A quality Hex is a WORSE Hex. The payoff: every quality Hex drained by the Hand of Life
+GUARANTEES one choice of its quality in the Hallowed Potential.
+  - The best tiers are placed first, starting with the best group (High/Max), then
+    Medium, then Low, one per group per round, so you can actually take them: you pick
+    one item per group.
+  - With more quality Hexes than groups, the next round fills a second choice per group.
+  - Only unlocked choices are upgraded, and only items that have quality versions.
+  - A choice that is already of that quality or higher is left alone.
+So carrying a Legendary Hex for a few stages guarantees a Legendary choice when you cleanse
+it. (With the Artifact of Command the shrine drops items directly; not covered.)
 
 
 HALLOWED ITEMS (11)
 ===================
 
 CORPSE LILY
-  Base: during the Teleporter event, an expanding cloud inflicts stacking Blight for up to
-        180% (+60% per team stack) damage per second.
-  Quality: 200 / 230 / 270 / 330% damage per second; the cloud grows 10 / 20 / 30 / 50%
-  faster. Legendary: enemies in the cloud are also slowed by 30%.
+  Base: during the Teleporter event, an expanding cloud inflicts stacking Blight.
+  Quality: enemies that die inside the cloud feed the Teleporter: +0.5 / 0.75 / 1 / 1.5%
+  charge each. Legendary: they also burst, inflicting Blight on enemies within 8m.
+  (The best quality on the team decides.)
 
 DREAM CRUCIBLE
   Base: when another item goes on cooldown or is consumed, 10% (+10% per stack) chance
         for the Crucible to take it instead. Regenerates each stage.
-  Quality: 15 / 20 / 27 / 35% chance. Legendary: also regenerates 3 minutes after being
-  used, not only at the next stage.
+  Quality: when it saves an item, 15 / 25 / 35 / 50% chance it isn't used up (or put on
+  cooldown) itself. Legendary: once consumed, it also restores itself after 3 minutes.
 
 EARTHBOUND VESSEL
-  Base: 3 (+2 per stack) extra jumps that recharge after 5s on the ground; each unused jump
-        gives +5 armor.
-  Quality: +1 / +1 / +2 / +3 extra jumps; +7 / 9 / 12 / 15 armor per unused jump.
-  Legendary: jumps recharge 50% faster.
+  Base: 3 (+2 per stack) extra jumps that recharge on the ground; +5 armor per unused jump.
+  Quality: each unused jump also grants:
+    Uncommon   +4% movement speed
+    Rare       + 4% attack speed
+    Epic       + 4% damage
+    Legendary  + 2% crit and +1 regeneration
+  Each extra quality copy adds 50% to these.
 
 INFERNAL MARK
   Base: after hitting an enemy with skills 10 times, stun and soul-brand it for 5s (+5s).
-        Soul-branded enemies draw attention and can be hit by their allies.
-  Quality: brands after 8 / 7 / 6 / 4 hits; lasts +1 / +2 / +3 / +5s.
-  Legendary: soul-branded enemies take 25% more damage from their allies.
+  Quality: brands after 8 / 7 / 6 / 4 hits, lasting +1 / 2 / 3 / 5s. You gain "Infernal
+  Fervor": +3 / 5 / 7 / 10% damage and attack speed for every enemy you have branded.
+  Epic and Legendary: with 5 enemies branded at once, they are all executed (not bosses).
+  Legendary: branded enemies take double damage from their allies.
 
 NIGHTMARE DEMON
-  Base: 20% chance on hit to haunt an enemy with a demon; at 1600% damage charge, hitting
-        it explodes it for 600% (+600% per stack) and triggers your On-kill effects.
-  Quality: charges at 1400 / 1200 / 1000 / 700%; explodes for 750 / 900 / 1100 / 1500%.
-  Legendary: the explosion haunts the nearest enemy with a new demon.
+  Base: 20% chance on hit to haunt an enemy with a demon; damaging the enemy charges it,
+        and hitting the charged demon explodes it for 600% (+600% per stack).
+  Quality: when a haunted enemy dies before its demon exploded, 25 / 40 / 60 / 90% chance
+  the demon jumps to the nearest enemy within 30m, keeping its charge.
 
 RITUAL HELMET
-  Base: a sprint charge every 10m, up to 10; at full charge, a skull hits enemies for
-        300% (+100% per stack) base damage, using a charge.
-  Quality: a charge every 9 / 8 / 7 / 5m; 375 / 450 / 550 / 700% base damage.
-  Legendary: each skull goes through up to 3 enemies before using its charge.
+  Base: sprinting builds charges; at full charge a skull hits enemies, scaling with speed.
+  Quality: skulls stun the enemies they hit for 0.5 / 0.8 / 1.2 / 2s, multiplied by how far
+  above sprint speed you are (up to 6s).
 
 SANGUINE CHALICE
   Base: 10% chance to bleed; your bleed heals you 0.5% (+0.5%) max health per tick.
-  Quality: 15 / 20 / 25 / 35% bleed chance; heals 0.6 / 0.75 / 0.9 / 1.2% per tick.
-  Legendary: healing past full health becomes barrier.
+  Quality: +5 / 10 / 15 / 25% bleed chance; each bleed tick heals 0.1 / 0.25 / 0.4 / 0.7%
+  more. Legendary: at full health, the healing becomes barrier.
 
 STAINED SCIMITAR
-  Base: 1% (+1%) lifesteal; every 10% max health healed spawns an orbiting ghost blade
-        (max 6, +6 per stack) for 100% damage + 240% bleed; Secondary fires them.
-  Quality: up to 8 / 9 / 10 / 12 blades; bleed 300 / 360 / 450 / 600%.
-  Legendary: blade hits heal you for 1% max health.
+  Base: healing spawns orbiting ghost blades (100% damage + bleed); Secondary fires them.
+  Quality: blades are x1.5 / 2 / 3 / 5 bigger and deal x1.5 / 2 / 3 / 5 damage.
+  Legendary: blade hits have a 5% chance to execute (not bosses).
 
 TOTEM OF AVARICE
-  Base: hits over 400% damage turn enemies within 5m (+5m) to gold for 5s (immobilized,
-        +50% gold as treasure). Recharges every 10s.
-  Quality: recharges every 9 / 8 / 6.5 / 5s; +1 / +2 / +3 / +5m radius;
-  +60 / 75 / 100 / 150% gold. Legendary: gilded enemies that die drop an extra treasure.
+  Base: big hits turn nearby enemies to gold (they drop extra treasure); 10s recharge.
+  Quality: recharges in 9 / 8 / 6.5 / 5s; gilded enemies that die pay 20 / 40 / 70 / 120%
+  of their gold reward on top.
 
 VENGEFUL SPIRIT
-  Base: 1 (+1) spirit absorbs 50% of damage taken; if it dies, gain +40% attack speed and
-        20% cooldown reduction for 15s whenever an ally dies, for the rest of the stage.
-  Quality: absorbs 55 / 60 / 65 / 75%; rage gives +50 / 60 / 75 / 100% attack speed.
-  Legendary: the spirit explodes when killed, stunning enemies within 20m for 2s.
+  Base: a protective spirit absorbs 50% of damage taken; if it dies, you go into a rage.
+  Quality: the base effect is unchanged; the spirit is x1.25 / 1.5 / 2 / 3 bigger, and
+  when it dies it explodes in 12 / 15 / 20 / 30m: enemies take 400 / 700 / 1100 / 1800% base
+  damage and allies heal 10 / 15 / 25 / 40% of their max health.
 
 VILE CENSER
-  Base: 10% chance on hit to stun; hitting a stunned enemy with a skill releases tendrils
-        for 200% (+100%) damage, chaining to enemies within 10m (+5m).
-  Quality: 12 / 15 / 18 / 25% stun; 250 / 300 / 375 / 500% damage; chains within
-  12 / 14 / 16 / 20m. Legendary: tendrils also weaken enemies for 3s.
+  Base: hitting a stunned enemy releases tendrils that chain between enemies.
+  Quality: enemies hit by the tendrils are linked for 1s: damage dealt to one is shared
+  with the others at 10 / 20 / 35 / 50%. Legendary: when a linked enemy dies, each other
+  one has a 15% chance to be executed (not bosses).
 
 
 HEXES (14)
 ==========
-A quality Hex is stronger (worse). Its payoff is the cleansing bonus above.
+A quality Hex is stronger (worse). Its payoff is the cleansing guarantee above.
 
 HEX OF ACCELERATION   Base: ground is slippery; acceleration -40% (+30% per stack).
-  Quality: -45 / 50 / 60 / 70% acceleration.
+  Quality: every 3 seconds the penalty swings between -40% and -55 / 65 / 75 / 90%.
 
 HEX OF BLINDNESS      Base: vision limited to 100m (-50% per stack).
-  Quality: 85 / 70 / 55 / 40m.
+  Quality: 65 / 40 / 20 / 1m.
 
 HEX OF FAMINE         Base: all healing -40% (+40% per stack).
-  Quality: -45 / 50 / 60 / 70%.
+  Quality: -45 / 50 / 60 / 99%.
 
 HEX OF GREED          Base: every 15s, share 1 (+1) random item of yours with 3 enemies.
   Quality: every 13 / 11 / 9 / 6s. Legendary: shared with 5 enemies.
 
 HEX OF HAUNTING       Base: a Poltergeist every 60s (-25% per stack) throws interactables at you.
-  Quality: every 50 / 42 / 35 / 25s.
+  Quality: Poltergeists deal +25 / 50 / 100 / 200% damage and have 25 / 50 / 75 / 100%
+  chance to gain a random boon (armor, attack speed, speed, crit or damage).
+  Legendary: immune for 5s when they appear.
 
 HEX OF LEAPING        Base: each jump lowers jump height by 25%, recovering over 6s (+6s).
-  Quality: -30 / 35 / 45 / 60% per jump.
+  Quality: -30 / 35 / 45% per jump. Legendary: you can no longer jump.
 
 HEX OF LOSS           Base: every 30s, 10% (+10%) of your items are disabled.
-  Quality: 12 / 15 / 20 / 25%.
+  Quality: 15 / 25 / 35 / 50%.
 
-HEX OF MIMICRY        Base: a Mimic every 60s (-10% per stack); +10% stats per extra stack.
-  Quality: every 52 / 45 / 38 / 30s; Mimics get +15 / 20 / 30 / 40% stats.
+HEX OF MIMICRY        Base: a Mimic every 60s (-10% per stack).
+  Quality: Mimics gain +20 / 40 / 70 / 100% damage and movement speed.
+  Legendary: immune for 5s when they appear.
 
 HEX OF MISFORTUNE     Base: interactables have a 50% chance to give 1 (+1) random debuff.
-  Quality: 60 / 70 / 80 / 100% chance. Legendary: 2 debuffs.
+  Quality: 60 / 70 / 80 / 100% chance. Epic: 2 debuffs at a time. Legendary: 4.
 
 HEX OF OSSIFICATION   Base: killing an enemy gives enemies within 30m barrier equal to 100%
                       (+100%) of its max health.
-  Quality: 125 / 150 / 200 / 300%.
+  Quality: 125 / 150 / 200 / 300%. Epic: they are also fully healed. Legendary: also, an
+  elite's death gives its elite powers to them for 20s.
 
 HEX OF PAIN           Base: max health -30% (+30% per stack, hyperbolic).
-  Quality: -35 / 40 / 50 / 60%.
+  Quality: -35 / 40 / 50 / 80%.
 
 HEX OF PATIENCE       Base: outside the Teleporter radius you take 1% max health, growing
                       12.5% (+12.5%) every 10s. Affects allies too.
-  Quality: grows 15 / 18 / 22 / 30% every 10s.
+  Quality: outside the charging Teleporter you also take 0.5 / 0.75 / 1 / 1.5% max health
+  per second, growing 12.5% every 10s. Epic: a random debuff every 3s outside.
+  Legendary: also a 10% chance every 3s to be executed.
 
 HEX OF RAIN           Base: difficulty +25% (+25% per stack).
-  Quality: +30 / 35 / 45 / 60%.
+  Quality: +30 / 35 / 45 / 100%.
 
 HEX OF STRIFE         Base: the Teleporter gets 1 (+1) Shrine of the Mountain effect, without
                       the extra rewards.
-  Quality: 10 / 25 / 50 / 100% chance of one more Mountain effect.
+  Quality: 10 / 25 / 50% chance of one more (rolled once per Teleporter).
+  Legendary: always two more (3 in total).
+
+Team-wide hexes (Rain, Strife, Patience) use the best quality on the team.
 
 Not covered by Part 2: N'tormat Pages, boss items (Whispering Fragment, Mycelium Cap, Peace
 Flower), the new equipment, and the Seed of Insight.
@@ -453,3 +459,6 @@ CHANGELOG OF THIS DOCUMENT
   v3  synced with MoreQuality 0.1.0 after the first in-game test
   v4  trimmed to what the mod actually does; Armed Backpack x3 size, Coffee Bag pulls
       beans from 40m; Part 2 added: Hallowed Concepts proposals (Hallowed items, Hexes)
+  v5  Part 2 revised after your review and implemented: new Corpse Lily, Dream Crucible,
+      Earthbound Vessel, Nightmare Demon, Ritual Helmet, Vengeful Spirit and Vile Censer
+      effects; harsher hexes; cleansing a quality Hex guarantees a choice of its quality
