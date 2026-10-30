@@ -143,7 +143,7 @@ PROTOTYPE JET BOOTS
 MAN-O'-WAR
   Base: on kill, discharge for 150% base damage on up to 3 targets.
   Quality: kills can release a friendly jellyfish (the real Jellyfish model) that drifts
-  to the nearest enemy within 40m and explodes.
+  to the nearest enemy within 40m and explodes in the Jellyfish's own electric nova.
     Uncommon   10% (+10% per stack) chance; 300% base damage, 6m explosion
     Rare       20% (+15%); 500%, 7m
     Epic       35% (+20%); 800%, 8m

@@ -24,6 +24,7 @@ namespace MoreQuality.Items
 
         private static GameObject jellyEffect;
         private static GameObject explosionEffect;
+        private static string explosionSound;
 
         internal static void Init()
         {
@@ -33,8 +34,6 @@ namespace MoreQuality.Items
 
         private static void BuildEffect(RoR2.ContentManagement.ContentPack pack)
         {
-            explosionEffect = LegacyResourcesAPI.Load<GameObject>("Prefabs/Effects/ImpactEffects/LightningStrikeImpact")
-                ?? LegacyResourcesAPI.Load<GameObject>("Prefabs/Effects/OmniEffect/OmniExplosionVFXQuick");
 
             GameObject source = null;
             foreach (var path in new[] { "Prefabs/Effects/OrbEffects/InfusionOrbEffect", "Prefabs/Effects/OrbEffects/HealthOrbEffect", "Prefabs/Effects/OrbEffects/ArrowOrbEffect" })
@@ -178,7 +177,26 @@ namespace MoreQuality.Items
                     falloffModel = BlastAttack.FalloffModel.None,
                     attackerFiltering = AttackerFiltering.NeverHitSelf
                 }.Fire();
+                if (!explosionEffect) LoadNova();
                 if (explosionEffect) EffectManager.SpawnEffect(explosionEffect, new EffectData { origin = position, scale = radius }, true);
+                if (!string.IsNullOrEmpty(explosionSound)) Util.PlaySound(explosionSound, target.gameObject);
+            }
+
+            // The real Jellyfish's electric nova. Its prefab and sound live in the JellyNova state's
+            // config, which the game only applies when that state is created, so create one first.
+            private static void LoadNova()
+            {
+                try
+                {
+                    new EntityStates.JellyfishMonster.JellyNova();
+                    explosionEffect = EntityStates.JellyfishMonster.JellyNova.novaEffectPrefab;
+                    explosionSound = EntityStates.JellyfishMonster.JellyNova.novaSoundString;
+                }
+                catch (System.Exception e)
+                {
+                    MoreQualityPlugin.Log.LogWarning("Jellyfish nova not found, using a lightning strike: " + e.Message);
+                }
+                if (!explosionEffect) explosionEffect = LegacyResourcesAPI.Load<GameObject>("Prefabs/Effects/ImpactEffects/LightningStrikeImpact");
             }
         }
     }
