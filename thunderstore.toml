@@ -1,0 +1,46 @@
+[config]
+schemaVersion = "0.0.1"
+
+[package]
+namespace = "Pierre"
+name = "MoreQuality"
+# The real version comes from the git tag (see .github/workflows/publish.yml) and must match Plugin.cs.
+versionNumber = "0.1.0"
+description = "Adds Quality variants with unique effects to Starstorm2's items and equipment."
+websiteUrl = "https://github.com/Pierre/MoreQuality"
+containsNsfwContent = false
+
+[package.dependencies]
+bbepis-BepInExPack = "5.4.2122"
+RiskofThunder-RoR2BepInExPack = "1.49.0"
+Goorakh-Quality = "0.8.5"
+TeamMoonstorm-Starstorm2 = "0.6.46"
+TeamMoonstorm-MoonstormSharedUtils = "2.6.3"
+RiskofThunder-R2API_RecalculateStats = "1.7.0"
+RiskofThunder-R2API_Prefab = "1.1.1"
+RiskofThunder-R2API_ContentManagement = "1.1.0"
+RiskofThunder-R2API_ProcType = "1.0.2"
+
+[build]
+icon = "./icon.png"
+readme = "./README.md"
+outdir = "./build"
+
+[[build.copy]]
+source = "./bin/Release/MoreQuality.dll"
+target = "plugins/MoreQuality.dll"
+
+[[build.copy]]
+source = "./lang"
+target = "plugins/lang"
+
+[[build.copy]]
+source = "./CHANGELOG.md"
+target = "CHANGELOG.md"
+
+[publish]
+repository = "https://thunderstore.io"
+communities = ["riskofrain2"]
+
+[publish.categories]
+riskofrain2 = ["mods", "items"]

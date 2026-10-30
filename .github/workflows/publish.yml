@@ -1,0 +1,57 @@
+name: Publish
+
+# Every push builds the Thunderstore package and keeps it as an artifact.
+# A "vX.Y.Z" tag also uploads it to Thunderstore.
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  package:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "8.0.x"
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Work out the version
+        id: version
+        run: |
+          plugin=$(grep -oP 'Version = "\K[^"]+' src/Plugin.cs)
+          if [[ "$GITHUB_REF" == refs/tags/v* ]]; then
+            tag="${GITHUB_REF_NAME#v}"
+            if [[ "$tag" != "$plugin" ]]; then
+              echo "::error::Tag v$tag doesn't match Plugin.cs version $plugin"
+              exit 1
+            fi
+          fi
+          echo "number=$plugin" >> "$GITHUB_OUTPUT"
+
+      - name: Download mod references
+        run: python tools/fetch_deps.py
+
+      - name: Build
+        run: dotnet build -c Release
+
+      - name: Package
+        run: |
+          dotnet tool restore
+          dotnet tcli build --package-version ${{ steps.version.outputs.number }}
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: MoreQuality-${{ steps.version.outputs.number }}
+          path: build/*.zip
+
+      - name: Publish to Thunderstore
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: dotnet tcli publish --package-version ${{ steps.version.outputs.number }} --token ${{ secrets.TCLI_AUTH_TOKEN }}

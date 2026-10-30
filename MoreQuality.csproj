@@ -1,0 +1,57 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.1</TargetFramework>
+    <AssemblyName>MoreQuality</AssemblyName>
+    <RootNamespace>MoreQuality</RootNamespace>
+    <LangVersion>7.3</LangVersion>
+    <Nullable>disable</Nullable>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <DebugType>portable</DebugType>
+    <NoWarn>$(NoWarn);CS0618;MSB3277;NU1701</NoWarn>
+  </PropertyGroup>
+
+  <!-- Local builds also copy the mod into this r2modman profile. Skipped when it doesn't exist (CI). -->
+  <PropertyGroup>
+    <Profile>C:\Users\pierr\AppData\Roaming\Thunderstore Mod Manager\DataFolder\RiskOfRain2\profiles\ModdedMulitplayer\BepInEx</Profile>
+    <DeployDir>$(Profile)\plugins\Pierre-MoreQuality</DeployDir>
+  </PropertyGroup>
+
+  <!-- Game and BepInEx: reference-only NuGet packages (nuget.config adds the BepInEx feed). -->
+  <ItemGroup>
+    <PackageReference Include="RiskOfRain2.GameLibs" Version="1.5.0-r.1" PrivateAssets="all" />
+    <PackageReference Include="UnityEngine.Modules" Version="2021.3.33" PrivateAssets="all" />
+    <PackageReference Include="BepInEx.Core" Version="5.4.21" PrivateAssets="all" />
+    <PackageReference Include="R2API.RecalculateStats" Version="1.7.0" PrivateAssets="all" />
+    <PackageReference Include="R2API.Prefab" Version="1.1.1" PrivateAssets="all" />
+    <PackageReference Include="R2API.ContentManagement" Version="1.1.0" PrivateAssets="all" />
+    <PackageReference Include="R2API.ProcType" Version="1.0.2" PrivateAssets="all" />
+  </ItemGroup>
+
+  <!-- Mods that aren't on NuGet: downloaded from Thunderstore into libs/ by tools/fetch_deps.py. -->
+  <ItemGroup>
+    <Reference Include="libs\ItemQualities.dll" Private="false" />
+    <Reference Include="libs\Starstorm2.dll" Private="false" />
+    <Reference Include="libs\MSU.Runtime.dll" Private="false" />
+    <Reference Include="libs\RoR2BepInExPack.dll" Private="false" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="lang\**\*" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <Target Name="CheckLibs" BeforeTargets="ResolveAssemblyReferences">
+    <Error Condition="!Exists('libs\Starstorm2.dll')" Text="libs/ is empty. Run: python tools/fetch_deps.py" />
+  </Target>
+
+  <Target Name="Deploy" AfterTargets="Build" Condition="Exists('$(Profile)')">
+    <ItemGroup>
+      <LangFiles Include="$(OutDir)lang\**\*" />
+    </ItemGroup>
+    <Copy SourceFiles="$(TargetPath)" DestinationFolder="$(DeployDir)" />
+    <Copy SourceFiles="@(LangFiles)" DestinationFolder="$(DeployDir)\lang\%(RecursiveDir)" />
+    <Message Text="Deployed to $(DeployDir)" Importance="high" />
+  </Target>
+
+</Project>
