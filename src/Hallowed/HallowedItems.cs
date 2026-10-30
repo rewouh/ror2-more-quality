@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using HarmonyLib;
 using ItemQualities;
 using R2API;
@@ -265,24 +266,62 @@ namespace MoreQuality.Hallowed
         }
     }
 
-    // Nightmare Demon: when a haunted enemy dies before its demon exploded, the demon can jump to a
-    // nearby enemy, keeping its charge.
+    // Nightmare Demon: bigger demons with a stronger explosion. When a haunted enemy dies before its
+    // demon exploded, the demon can jump to a nearby enemy, keeping its charge.
     internal static class NightmareDemon
     {
         private static readonly T4 JumpChance = new T4(25f, 40f, 60f, 90f);
+        private static readonly T4 DamageMult = new T4(1.25f, 1.5f, 2f, 3f);
+        private static readonly T4 Size = new T4(1.25f, 1.5f, 2f, 3f);
         private const float JumpRange = 30f;
         private static GameObject demonPrefab;
+        private static bool jumping;
         private static readonly AccessTools.FieldRef<DreamDemonProjectileController, float> charge = AccessTools.FieldRefAccess<DreamDemonProjectileController, float>("storedDamageCoefficient");
+        private static readonly Dictionary<HealthComponent, float> pendingCharge = new Dictionary<HealthComponent, float>();
+        private static readonly ConditionalWeakTable<DreamDemonProjectileController, object> scaled = new ConditionalWeakTable<DreamDemonProjectileController, object>();
 
         internal static void Init()
         {
             GlobalEventManager.onCharacterDeathGlobal += OnDeath;
             RoR2Application.onLoad += () => demonPrefab = DemonPrefab();
+            Hooks.Patch(typeof(ProjectileManager), nameof(ProjectileManager.FireProjectile), typeof(NightmareDemon), prefix: nameof(StrongerDemon), args: new[] { typeof(FireProjectileInfo) });
+            Hooks.Patch(typeof(DreamDemonProjectileController), "FixedUpdate", typeof(NightmareDemon), prefix: nameof(DemonUpdate));
         }
 
         private static GameObject DemonPrefab()
         {
             return (GameObject)AccessTools.Field(typeof(DreamDemonBehavior), "dreamDemonProjectilePrefab").GetValue(null);
+        }
+
+        private static QualityTier OwnerTier(GameObject owner)
+        {
+            return owner ? Q.Highest(Q.Counts(owner.GetComponent<CharacterBody>(), DLC4Content.Items.DreamDemon)) : QualityTier.None;
+        }
+
+        private static void StrongerDemon(ref FireProjectileInfo fireProjectileInfo)
+        {
+            if (jumping || !demonPrefab || fireProjectileInfo.projectilePrefab != demonPrefab) return;
+            var tier = OwnerTier(fireProjectileInfo.owner);
+            if (tier != QualityTier.None) fireProjectileInfo.damage *= DamageMult[tier];
+        }
+
+        // Runs on every game: grows quality demons once, and hands a jumped demon its charge back.
+        private static void DemonUpdate(DreamDemonProjectileController __instance)
+        {
+            object done;
+            if (!scaled.TryGetValue(__instance, out done))
+            {
+                scaled.Add(__instance, null);
+                var projectile = __instance.GetComponent<ProjectileController>();
+                var tier = OwnerTier(projectile ? projectile.owner : null);
+                if (tier != QualityTier.None) __instance.transform.localScale *= Size[tier];
+            }
+            if (!NetworkServer.active || pendingCharge.Count == 0 || !__instance.targetHurtBox) return;
+            float stored;
+            var target = __instance.targetHurtBox.healthComponent;
+            if (!target || !pendingCharge.TryGetValue(target, out stored)) return;
+            pendingCharge.Remove(target);
+            if (stored > charge(__instance)) __instance.NetworkstoredDamageCoefficient = stored;
         }
 
         private static void OnDeath(DamageReport report)
@@ -300,29 +339,26 @@ namespace MoreQuality.Hallowed
                 var next = Enemies.Near(victim.corePosition, JumpRange, owner.teamComponent.teamIndex, victim.healthComponent).FirstOrDefault();
                 if (!next || !next.body.mainHurtBox || !demonPrefab) continue;
 
-                var stored = charge(demon);
+                pendingCharge[next] = charge(demon);
                 var damage = demon.GetComponent<ProjectileDamage>();
-                ProjectileManager.instance.FireProjectile(new FireProjectileInfo
+                jumping = true;   // its damage already includes the quality bonus
+                try
                 {
-                    projectilePrefab = demonPrefab,
-                    position = demon.transform.position,
-                    rotation = Util.QuaternionSafeLookRotation(next.body.corePosition - demon.transform.position),
-                    owner = owner.gameObject,
-                    damage = damage ? damage.damage : owner.damage * 6f,
-                    crit = damage && damage.crit,
-                    damageColorIndex = DamageColorIndex.Item,
-                    target = next.body.mainHurtBox.gameObject,
-                    speedOverride = 15f
-                });
-                var target = next;
-                RoR2Application.onNextUpdate += () =>
-                {
-                    foreach (var fresh in InstanceTracker.GetInstancesList<DreamDemonProjectileController>())
+                    ProjectileManager.instance.FireProjectile(new FireProjectileInfo
                     {
-                        if (fresh && fresh.targetHurtBox && fresh.targetHurtBox.healthComponent == target && charge(fresh) <= 0f) charge(fresh) = stored;
-                    }
-                };
-                Object.Destroy(demon.gameObject);
+                        projectilePrefab = demonPrefab,
+                        position = demon.transform.position,
+                        rotation = Util.QuaternionSafeLookRotation(next.body.corePosition - demon.transform.position),
+                        owner = owner.gameObject,
+                        damage = damage ? damage.damage : owner.damage * 6f * DamageMult[tier],
+                        crit = damage && damage.crit,
+                        damageColorIndex = DamageColorIndex.Item,
+                        target = next.body.mainHurtBox.gameObject,
+                        speedOverride = 15f
+                    });
+                }
+                finally { jumping = false; }
+                NetworkServer.Destroy(demon.gameObject);
             }
         }
     }
@@ -503,9 +539,17 @@ namespace MoreQuality.Hallowed
     }
 
     // Vengeful Spirit: a bigger spirit that explodes when it dies, healing allies and hurting enemies.
+    // Epic and Legendary spirits come back after 6 / 3 minutes, and the rage of the dead one stays until
+    // the end of the stage, so it builds up.
     internal static class VengefulSpirit
     {
-        private static readonly T4 Size = new T4(1.25f, 1.5f, 2f, 3f);
+        private static readonly T4 Size = new T4(1.5f, 2f, 3f, 5f);
+        private static readonly T4 RegenDelay = new T4(0f, 0f, 360f, 180f);
+
+        private struct Regen { public CharacterMaster Master; public ItemDef Item; public float Due; }
+        private static readonly List<Regen> regens = new List<Regen>();
+        // Spirits given back this stage on top of the dormant ones, removed again at the next stage.
+        private static readonly List<KeyValuePair<CharacterMaster, ItemDef>> extra = new List<KeyValuePair<CharacterMaster, ItemDef>>();
         private static readonly T4 Radius = new T4(12f, 15f, 20f, 30f);
         private static readonly T4 Damage = new T4(4f, 7f, 11f, 18f);
         private static readonly T4 Heal = new T4(0.1f, 0.15f, 0.25f, 0.4f);
@@ -515,6 +559,8 @@ namespace MoreQuality.Hallowed
             Hooks.Patch(typeof(VengefulSpiritAttachmentController), "OnSpiritSpawnedServer", typeof(VengefulSpirit), postfix: nameof(OnSpawned));
             Hooks.Patch(typeof(VengefulSpiritAttachmentController), "OnSpiritDefeatedServer", typeof(VengefulSpirit), prefix: nameof(BeforeDefeat), postfix: nameof(OnDefeated));
             Hooks.Patch(typeof(CharacterMaster), "TryVengefulSpiritRegen", typeof(VengefulSpirit), postfix: nameof(StageRegen));
+            Ticker.Every(1f, RegenTick);
+            Run.onRunStartGlobal += _ => { regens.Clear(); extra.Clear(); };
         }
 
         private static CharacterBody Owner(VengefulSpiritAttachmentController controller)
@@ -527,10 +573,18 @@ namespace MoreQuality.Hallowed
         {
             var tier = Q.Highest(Q.Counts(Owner(__instance), DLC4Content.Items.VengefulSpirit));
             if (tier == QualityTier.None || !spawnResult.spawnedInstance) return;
-            var master = spawnResult.spawnedInstance.GetComponent<CharacterMaster>();
-            var body = master ? master.GetBody() : null;
-            var model = body && body.modelLocator ? body.modelLocator.modelTransform : null;
-            if (model) model.localScale *= Size[tier];
+            Grow(spawnResult.spawnedInstance.GetComponent<CharacterMaster>(), Size[tier], 30);
+        }
+
+        // The spirit's body can appear a few frames after its master, so keep trying for a moment.
+        private static void Grow(CharacterMaster master, float size, int triesLeft)
+        {
+            if (!master || triesLeft <= 0) return;
+            var body = master.GetBody();
+            var locator = body ? body.modelLocator : null;
+            var model = locator ? (locator.modelBaseTransform ? locator.modelBaseTransform : locator.modelTransform) : null;
+            if (model) { model.localScale *= size; return; }
+            RoR2Application.onNextUpdate += () => Grow(master, size, triesLeft - 1);
         }
 
         private static void BeforeDefeat(VengefulSpiritAttachmentController __instance, out int __state)
@@ -547,14 +601,20 @@ namespace MoreQuality.Hallowed
             if (tier == QualityTier.None) return;
 
             // The game only turns a normal spirit into its "dormant" form; do the same for a quality one.
+            var died = DLC4Content.Items.VengefulSpirit;
             if (owner.inventory.GetItemCountPermanent(DLC4Content.Items.VengefulSpirit) == __state)
             {
                 var used = Dlc.LowestPermanent(owner.inventory, DLC4Content.Items.VengefulSpirit);
                 if (Dlc.Convert(owner.inventory, DLC4Content.Items.VengefulSpirit, DLC4Content.Items.VengefulSpiritRageMode, used, 1) > 0)
                 {
+                    died = Dlc.Variant(DLC4Content.Items.VengefulSpirit, used);
                     var rage = owner.GetComponent<VengefulSpiritRageModeBehavior>();
                     if (rage) rage.TryEnqueueDeathEvent(damageReport);
                 }
+            }
+            if (RegenDelay[tier] > 0f && owner.master)
+            {
+                regens.Add(new Regen { Master = owner.master, Item = died, Due = Run.instance.GetRunStopwatch() + RegenDelay[tier] });
             }
 
             var spirit = spiritMaster ? spiritMaster.GetBody() : null;
@@ -589,6 +649,27 @@ namespace MoreQuality.Hallowed
             for (var tier = QualityTier.Uncommon; tier < QualityTier.Count; tier++)
             {
                 Dlc.Convert(__instance.inventory, DLC4Content.Items.VengefulSpiritRageMode, DLC4Content.Items.VengefulSpirit, tier, int.MaxValue);
+            }
+            // Every dormant spirit has just woken up again, so the extra ones given back go away.
+            foreach (var given in extra.Where(e => e.Key == __instance).ToList())
+            {
+                if (__instance.inventory.GetItemCountPermanent(given.Value) > 0) __instance.inventory.RemoveItemPermanent(given.Value, 1);
+                extra.Remove(given);
+            }
+            regens.RemoveAll(r => r.Master == __instance);
+        }
+
+        private static void RegenTick()
+        {
+            var now = Run.instance.GetRunStopwatch();
+            for (var i = regens.Count - 1; i >= 0; i--)
+            {
+                var regen = regens[i];
+                if (!regen.Master || !regen.Item) { regens.RemoveAt(i); continue; }
+                if (now < regen.Due) continue;
+                regens.RemoveAt(i);
+                regen.Master.inventory.GiveItemPermanent(regen.Item, 1);   // the dormant one stays: its rage keeps going
+                extra.Add(new KeyValuePair<CharacterMaster, ItemDef>(regen.Master, regen.Item));
             }
         }
     }

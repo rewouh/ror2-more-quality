@@ -1,4 +1,4 @@
-MOREQUALITY: DESIGN DOCUMENT (v5)
+MOREQUALITY: DESIGN DOCUMENT (v6)
 =================================
 Mod versions: Starstorm2 0.6.46, Quality 0.8.5, Risk of Rain 2 with Hallowed Concepts
 Mod release:  0.1.0 (Thunderstore: Rewouh-MoreQuality), beta
@@ -317,6 +317,10 @@ GUARANTEES one choice of its quality in the Hallowed Potential.
 So carrying a Legendary Hex for a few stages guarantees a Legendary choice when you cleanse
 it. (With the Artifact of Command the shrine drops items directly; not covered.)
 
+Quality stops item costs (printers, scrappers) from spending quality items. The shrine pays
+with hexes through that same cost, so MoreQuality gives the hex cost its own check and
+payment that include quality hexes; other item costs keep Quality's rule.
+
 
 HALLOWED ITEMS (11)
 ===================
@@ -352,8 +356,9 @@ INFERNAL MARK
 NIGHTMARE DEMON
   Base: 20% chance on hit to haunt an enemy with a demon; damaging the enemy charges it,
         and hitting the charged demon explodes it for 600% (+600% per stack).
-  Quality: when a haunted enemy dies before its demon exploded, 25 / 40 / 60 / 90% chance
-  the demon jumps to the nearest enemy within 30m, keeping its charge.
+  Quality: demons are x1.25 / 1.5 / 2 / 3 bigger and explode for 750 / 900 / 1200 / 1800%
+  (x1.25 / 1.5 / 2 / 3). When a haunted enemy dies before its demon exploded, 25 / 40 / 60 /
+  90% chance the demon jumps to the nearest enemy within 30m, keeping its charge.
 
 RITUAL HELMET
   Base: sprinting builds charges; at full charge a skull hits enemies, scaling with speed.
@@ -377,9 +382,11 @@ TOTEM OF AVARICE
 
 VENGEFUL SPIRIT
   Base: a protective spirit absorbs 50% of damage taken; if it dies, you go into a rage.
-  Quality: the base effect is unchanged; the spirit is x1.25 / 1.5 / 2 / 3 bigger, and
-  when it dies it explodes in 12 / 15 / 20 / 30m: enemies take 400 / 700 / 1100 / 1800% base
+  Quality: the base effect is unchanged; the spirit is x1.5 / 2 / 3 / 5 bigger, and when
+  it dies it explodes in 12 / 15 / 20 / 30m: enemies take 400 / 700 / 1100 / 1800% base
   damage and allies heal 10 / 15 / 25 / 40% of their max health.
+  Epic and Legendary: the spirit comes back after 6 / 3 minutes, and the vengeance from the
+  one that died stays until the end of the stage, so it builds up with every death.
 
 VILE CENSER
   Base: hitting a stunned enemy releases tendrils that chain between enemies.
@@ -408,6 +415,7 @@ HEX OF HAUNTING       Base: a Poltergeist every 60s (-25% per stack) throws inte
   Quality: Poltergeists deal +25 / 50 / 100 / 200% damage and have 25 / 50 / 75 / 100%
   chance to gain a random boon (armor, attack speed, speed, crit or damage).
   Legendary: immune for 5s when they appear.
+  (A Poltergeist dies by itself once it no longer carries an interactable: that's the DLC.)
 
 HEX OF LEAPING        Base: each jump lowers jump height by 25%, recovering over 6s (+6s).
   Quality: -30 / 35 / 45% per jump. Legendary: you can no longer jump.
@@ -462,3 +470,6 @@ CHANGELOG OF THIS DOCUMENT
   v5  Part 2 revised after your review and implemented: new Corpse Lily, Dream Crucible,
       Earthbound Vessel, Nightmare Demon, Ritual Helmet, Vengeful Spirit and Vile Censer
       effects; harsher hexes; cleansing a quality Hex guarantees a choice of its quality
+  v6  second test: Nightmare Demon bigger and stronger, charge now kept on a jump; Vengeful
+      Spirit bigger, Epic/Legendary spirits come back and their vengeance builds up; quality
+      hexes can now be cleansed (the shrine ignored them); description fixes

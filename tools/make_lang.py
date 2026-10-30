@@ -288,26 +288,31 @@ ITEMS["RechargeableJump"] = ("Unused jumps also grant stats.", add(per_tier(
      q("+4%") + " movement speed, " + q("+4%", dmg) + " attack speed and " + q("+4%", dmg) + " damage",
      q("+4%") + " movement speed, " + q("+4%", dmg) + " attack speed, " + q("+4%", dmg) + " damage, " + q("+2%", dmg) + " crit and " + q("+1", heal) + " regeneration"])))
 
-ITEMS["CausticPheromones"] = ("Brand sooner; grow stronger with every brand.", add(per_tier(
-    "Brands after {0} hits and lasts {1} longer. Gain {2} " + dmg("damage") + " and " + dmg("attack speed") + " for every enemy you have branded.{3}",
-    [q("8"), q("7"), q("6"), q("4")], [q("1s"), q("2s"), q("3s"), q("5s")],
+ITEMS["CausticPheromones"] = ("Brand sooner; grow stronger with every brand.", per_tier(
+    "After hitting an enemy with " + util("skills") + " {0} times, " + dmg("stun") + " and " + dmg("soul-brand") + " that enemy for {1} " + stack("+5s per stack") + ". "
+    "Soul-branded enemies " + util("draw attention") + " and " + dmg("have friendly fire enabled") + ". Once soul-branding wears off, the target " + util("cannot be soul-branded again") + " for 15 seconds.\n"
+    "Gain {2} " + dmg("damage") + " and " + dmg("attack speed") + " for every enemy you have branded.{3}",
+    [q("8"), q("7"), q("6"), q("4")], [q("6s"), q("7s"), q("8s"), q("10s")],
     [q("+3%", dmg), q("+5%", dmg), q("+7%", dmg), q("+10%", dmg)],
     ["", "", " With " + q("5") + " enemies branded at once, they are all " + dmg("executed") + " (not bosses).",
-     " With " + q("5") + " enemies branded at once, they are all " + dmg("executed") + " (not bosses). Branded enemies take " + q("double", dmg) + " damage from their allies."])))
+     " With " + q("5") + " enemies branded at once, they are all " + dmg("executed") + " (not bosses). Branded enemies take " + q("double", dmg) + " damage from their allies."]))
 
-ITEMS["DreamDemon"] = ("Demons jump to a new host.", add(per_tier(
-    "When a haunted enemy dies before its demon exploded, {0} chance the demon jumps to a nearby enemy, keeping its charge.",
-    [q("25%"), q("40%"), q("60%"), q("90%")])))
+ITEMS["DreamDemon"] = ("Bigger, stronger demons that jump to a new host.", per_tier(
+    dmg("20%") + " chance on hit to haunt an enemy with a {0} " + dmg("Nightmare Demon") + ". Damaging a haunted enemy charges the demon. Upon reaching a charge of " + dmg("1600%") + " damage, hitting the demon with any " + util("skill") + " causes it to " + dmg("explode") + " for {1} " + stack("+600% per stack") + " base damage and activate all your " + dmg("On-kill") + " effects.\n"
+    "If its host dies first, {2} chance the demon jumps to a nearby enemy, keeping its charge.",
+    [q("x1.25 size"), q("x1.5 size"), q("x2 size"), q("x3 size")],
+    [q("750%", dmg), q("900%", dmg), q("1200%", dmg), q("1800%", dmg)],
+    [q("25%"), q("40%"), q("60%"), q("90%")]))
 
 ITEMS["SprintDamage"] = ("Skulls stun, longer the faster you go.", add(per_tier(
     "Skulls " + util("stun") + " the enemies they hit for {0}, multiplied by how far above sprint speed you are (up to 6s).",
     [q("0.5s"), q("0.8s"), q("1.2s"), q("2s")])))
 
-ITEMS["SanguineChalice"] = ("More bleed, more healing.", add(per_tier(
-    "{0} " + dmg("bleed chance") + ". Each bleed tick heals {1} more of your " + heal("maximum health") + ".{2}",
-    [q("+5%", dmg), q("+10%", dmg), q("+15%", dmg), q("+25%", dmg)],
-    [q("0.1%", heal), q("0.25%", heal), q("0.4%", heal), q("0.7%", heal)],
-    ["", "", "", " At full health, the healing becomes " + q("barrier", heal) + "."])))
+ITEMS["SanguineChalice"] = ("More bleed, more healing.", per_tier(
+    "{0} chance to " + dmg("bleed") + " an enemy. Your " + dmg("bleed") + " damage " + heal("heals you") + " for {1} " + stack("+0.5% per stack") + " of your maximum health per tick.{2}",
+    [q("15%", dmg), q("20%", dmg), q("25%", dmg), q("35%", dmg)],
+    [q("0.6%", heal), q("0.75%", heal), q("0.9%", heal), q("1.2%", heal)],
+    ["", "", "", " At full health, the healing becomes " + q("barrier", heal) + "."]))
 
 ITEMS["GhostBlades"] = ("Bigger, deadlier blades.", add(per_tier(
     "Blades are {0} bigger and deal {1} damage.{2}",
@@ -318,11 +323,14 @@ ITEMS["GoldenGoose"] = ("Recharges faster; gilded kills pay more.", add(per_tier
     "Recharges in {0}. Gilded enemies that die pay {1} of their gold reward on top.",
     [q("9s"), q("8s"), q("6.5s"), q("5s")], [q("20%"), q("40%"), q("70%"), q("120%")])))
 
-ITEMS["VengefulSpirit"] = ("A bigger spirit that explodes when it dies.", add(per_tier(
-    "The spirit is {0} bigger. When it dies, it explodes in {1}: enemies take {2} base damage and allies " + heal("heal") + " {3} of their maximum health.",
-    [q("x1.25"), q("x1.5"), q("x2"), q("x3")], [q("12m"), q("15m"), q("20m"), q("30m")],
+ITEMS["VengefulSpirit"] = ("A huge spirit that explodes when it dies.", add(per_tier(
+    "The spirit is {0} bigger. When it dies, it explodes in {1}: enemies take {2} base damage and allies " + heal("heal") + " {3} of their maximum health.{4}",
+    [q("x1.5"), q("x2"), q("x3"), q("x5")], [q("12m"), q("15m"), q("20m"), q("30m")],
     [q("400%", dmg), q("700%", dmg), q("1100%", dmg), q("1800%", dmg)],
-    [q("10%", heal), q("15%", heal), q("25%", heal), q("40%", heal)])))
+    [q("10%", heal), q("15%", heal), q("25%", heal), q("40%", heal)],
+    ["", "",
+     " It comes back after " + q("6 minutes") + ", and the vengeance it gave you lasts until the end of the stage, so it " + util("builds up") + ".",
+     " It comes back after " + q("3 minutes") + ", and the vengeance it gave you lasts until the end of the stage, so it " + util("builds up") + "."])))
 
 ITEMS["VengefulSpiritRageMode"] = ("", [BASE] * 4)
 
@@ -363,11 +371,9 @@ ITEMS["HexHaunting"] = ("Stronger Poltergeists.", hex_line(add(per_tier(
     ["", "", "", " They are " + q("immune") + " for 5s when they appear."]))))
 
 ITEMS["WeakAssHamstring"] = ("Jumps cost more height.", hex_line(per_tier(
-    "{0} Your jump height " + util("returns gradually") + " over " + util("6s") + " " + stack("+6 per stack") + ". Additionally, " + death("reduces") + " the amount of distance you can " + death("fall") + " without taking " + death("fall damage") + ".",
-    ["Jumping " + death("reduces") + " your jump height by " + q("30%", death) + ".",
-     "Jumping " + death("reduces") + " your jump height by " + q("35%", death) + ".",
-     "Jumping " + death("reduces") + " your jump height by " + q("45%", death) + ".",
-     q("You can no longer jump.", death)])))
+    "Jumping " + death("reduces") + " your jump height by {0}. Your jump height " + util("returns gradually") + " over " + util("6s") + " " + stack("+6 per stack") + ". Additionally, " + death("reduces") + " the amount of distance you can " + death("fall") + " without taking " + death("fall damage") + ".",
+    [q("30%", death), q("35%", death), q("45%", death), ""])[:3] + [
+    q("You can't jump at all.", death) + " Additionally, " + death("reduces") + " the amount of distance you can " + death("fall") + " without taking " + death("fall damage") + "."]))
 
 ITEMS["RoamingItemDisable"] = ("More items disabled.", hex_line(per_tier(
     "Every " + util("30 seconds") + ", {0} of the items in your inventory " + stack("+10% per stack") + " become " + death("disabled") + ".",
