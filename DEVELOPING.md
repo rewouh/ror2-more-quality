@@ -27,6 +27,8 @@ dotnet build -c Release
 
 ## Differences from the design doc
 
+The design doc, `Starstorm2_Quality_Proposals.txt`, is kept in sync with the code: when an effect or a number changes, update it there too. These are the places where the code differs from the original plan:
+
 - **Simple Magnet:** Starstorm2 never reads its "treasure chance" setting, so instead each item on the ground the magnet pulls gets a one-time 5/8/12/20% chance to be upgraded to the magnet's quality.
 - **Guarding Amulet:** the barrier is a percentage of the whole hit from behind (the prevented part alone was too small to notice).
 - **Coffee Bag:** Espresso triggers when you grab a bean while holding at least 5 beans, rather than at the full cap (which grows with every bag).

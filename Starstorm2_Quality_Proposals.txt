@@ -1,7 +1,10 @@
-STARSTORM 2 x QUALITY: PROPOSED QUALITY EFFECTS (v2)
-====================================================
-Versions: Starstorm2 0.6.46, Quality 0.8.5 (your ModdedMulitplayer profile)
-Status: v2, reviewed. Design approved; numbers can still be tuned during testing.
+MOREQUALITY: QUALITY EFFECTS FOR STARSTORM 2 (v3)
+=================================================
+Versions: Starstorm2 0.6.46, Quality 0.8.5
+Status: v3, matches MoreQuality 0.1.0 (published on Thunderstore as Rewouh-MoreQuality).
+        36 of the 40 pickups are implemented; the 4 Starstorm2 beta items are not yet.
+        This document is kept in sync with the mod: when an effect or a number changes
+        in the code, it changes here too.
 
 
 HOW TO READ THIS
@@ -16,19 +19,25 @@ Legendary x5 (of the Uncommon bonus), with Legendary often getting a special twi
 "(+X per stack)" means per extra copy of that same quality tier, as in Quality.
 
 Tags:
-  [CHANGED]  rewritten from your notes
-  [KEPT]     you approved it as is (sometimes with your addition, marked "you:")
+  [CHANGED]  rewritten from your notes (v2)
+  [KEPT]     you approved it as is (v2), sometimes with your addition ("+ you")
+  [TUNED]    changed after the first in-game test (v3)
+  [NOT YET]  designed, but not implemented (Starstorm2 beta item)
 
 Effort: E = easy (a stat hook)
         M = medium (hooks into Starstorm2's own item code)
         H = hard (new projectiles, summons, physics or visuals)
 
-Base numbers are from your Starstorm2 config (SS2.Items.cfg).
+Base numbers are from Starstorm2's default config (SS2.Items.cfg).
+Values written "x / y" for a stat that already exists are TOTALS (base + quality),
+as the in-game descriptions show them.
 
 
-IN SCOPE: 40 pickups
---------------------
+IN SCOPE: 40 pickups (36 implemented)
+-------------------------------------
   White 14 | Green 10 | Red 9 | Boss 1 | Equipment 6
+  Not yet: Ice Tool, Neurotoxin Gland, Sticky Overloader, Toy Soldiers. They only exist
+  when Starstorm2's 0.7 beta is enabled, so they can't be registered or tested yet.
 
 Not included: the lunar items (Primal Birthright, 3 Relics, Rock Fruit), Starstorm2's
 custom-tier items (Remuneration, Stirring Soul), Relic of Extinction (no tier), elite
@@ -54,7 +63,7 @@ WHITE ITEMS (14)
 
 2. BROKEN BLOOD TESTER                                        [CHANGED]  M
    Base: after gaining $25, heal 25 + 8% max health.
-   Idea: each time it triggers you also get a short "Rush" buff. Higher tiers add
+   Idea: each time it triggers you also get a short "Blood Rush" buff. Higher tiers add
          more stats to the buff.
      Uncommon   Rush for 4s (+1s per stack): +20% movement speed
      Rare       Rush for 5s (+1s per stack): +30% movement speed, +20% attack speed
@@ -63,11 +72,13 @@ WHITE ITEMS (14)
      Legendary  Rush for 8s (+1s per stack): +50% movement speed, +40% attack speed,
                 +30% damage, +30 armor
 
-3. COFFEE BAG                                                 [KEPT + you]  M
+3. COFFEE BAG                                                 [KEPT + you, TUNED]  M
    Base: 10% on hit to drop a bean, +8% attack and movement speed for 6s, up to
          5 beans per stack.
-   Idea: "Espresso": grabbing a bean while at max beans cuts your skill cooldowns.
-         Beans also drop more often, and Legendary beans fly to you.
+   Idea: "Espresso": grabbing a bean while holding at least 5 beans cuts all your
+         skill cooldowns. Beans also drop more often, and Legendary beans fly to you.
+   v3: the trigger was "at max beans", which grows by 5 with every bag and was never
+       reached in practice; it's now a flat 5 beans.
      Uncommon   12% drop chance; Espresso -0.5s (+0.5s per stack) on all cooldowns
      Rare       14% drop chance; Espresso -1s (+1s per stack)
      Epic       17% drop chance; Espresso -1.5s (+1.5s per stack)
@@ -95,20 +106,23 @@ WHITE ITEMS (14)
 
 6. FORK                                                       [KEPT]  E
    Base: +8% (+8% per stack) base damage.
-     Uncommon   +16% (+16% per stack) base damage
-     Rare       +28% (+28% per stack)
-     Epic       +44% (+44% per stack)
-     Legendary  +64% (+64% per stack)
+   Quality adds 16 / 28 / 44 / 64% on top, so the totals are:
+     Uncommon   24% (+24% per stack) base damage
+     Rare       36% (+36% per stack)
+     Epic       52% (+52% per stack)
+     Legendary  72% (+72% per stack)
 
-7. GUARDING AMULET                                            [KEPT]  M
+7. GUARDING AMULET                                            [KEPT, TUNED]  M
    Base: take 30% (+30% per stack) less damage from behind.
-   Idea: damage blocked from behind becomes barrier.
-     Uncommon   barrier equal to 10% (+10% per stack) of the damage prevented
+   Idea: hits from behind also grant barrier.
+   v3: the barrier was a share of the damage PREVENTED, which was too small to notice;
+       it's now a share of the whole hit.
+     Uncommon   barrier equal to 10% (+10% per stack) of the hit's damage
      Rare       20% (+20% per stack)
      Epic       35% (+35% per stack)
      Legendary  50% (+50% per stack); the attacker is also stunned for 1s
 
-8. ICE TOOL                                                   [KEPT + you]  H
+8. ICE TOOL                                                   [KEPT + you, NOT YET]  H
    Base: while touching a wall, +1 (+1 per stack) extra jump.
    Idea: jumping off a wall gives an attack speed burst for 3s. Touching a wall also
          knocks ice blocks loose, which fall onto nearby enemies (200% base damage
@@ -122,8 +136,8 @@ WHITE ITEMS (14)
 9. MALICE                                                     [CHANGED]  M
    Base: attacks deal 25% TOTAL damage to 1 (+1 per stack) extra enemy within
          12m (+2.4m per stack).
-   Idea: an enemy hit by Malice's splash can pass it on to another enemy, and each
-         hop rolls again. Capped so it can't loop forever.
+   Idea: when the splash runs out of targets, the last enemy hit can pass it on to
+         another enemy, and each hop rolls again. Capped so it can't loop forever.
      Uncommon   15% (+15% per stack) chance to chain, up to 3 hops
      Rare       25% (+25% per stack), up to 5 hops
      Epic       40% (+40% per stack), up to 8 hops
@@ -147,24 +161,27 @@ WHITE ITEMS (14)
 
 12. UNIVERSAL CHARGER                                         [KEPT]  M
     Base: every 18s (-10% per stack), refresh the cooldown of your next non-primary skill.
-      Uncommon   timer -15% (-15% per stack)
-      Rare       timer -30% (-30% per stack)
-      Epic       timer -45% (-45% per stack)
-      Legendary  timer -60% (-60% per stack), and refreshes ALL non-primary skills at once
+    Quality makes the timer 15 / 30 / 45 / 60% faster (+ the same per stack), which with
+    one item gives:
+      Uncommon   every 15.7s
+      Rare       every 13.8s
+      Epic       every 12.4s
+      Legendary  every 11.3s, and refreshes ALL non-primary skills at once
 
 13. URANIUM HORSESHOE                                         [CHANGED]  M
     Base: +10% (+10% per stack) movement speed and jump height.
-      Uncommon   +20% (+20% per stack)
-      Rare       +35% (+35% per stack)
-      Epic       +55% (+55% per stack), immune to fall damage
-      Legendary  +80% (+80% per stack), immune to fall damage, and landing from a fall
+    Quality adds 20 / 35 / 55 / 80% on top, so the totals are:
+      Uncommon   30% (+30% per stack)
+      Rare       45% (+45% per stack)
+      Epic       65% (+65% per stack), immune to fall damage
+      Legendary  90% (+90% per stack), immune to fall damage, and landing from a fall
                  STOMPS: up to 600% base damage in 10m (more the higher you fell) and
                  stuns enemies for 0.5s
 
 14. X-4 STIMULANT                                             [CHANGED]  M
     Base: secondary cooldown -10% (+10% per stack); using your secondary gives
           +2 hp/s regen (+1 per stack) for 3s.
-    Idea: using your secondary can also grant a random positive effect for 5s.
+    Idea: using your secondary can also grant a random "Stim" boost for 5s.
           Pool (no attack speed, as you asked): +30 armor, +30% movement speed,
           +25% damage, +20% crit chance, barrier (10% max health), or a burst of
           regen (+10 hp/s).
@@ -181,6 +198,8 @@ GREEN ITEMS (10)
 15. CRYPTIC SOURCE                                            [KEPT]  M
     Base: when your sprint ends, burst for 250% base damage in 15m (+3m per stack).
     Idea: every enemy the burst hits refunds utility cooldown (capped at 3 enemies).
+          The refund lands one frame after the burst, once the sprint state has ended
+          (the game ignores cooldown changes to a skill that is still running).
       Uncommon   -0.5s (+0.5s per stack) per enemy hit
       Rare       -1s (+1s per stack)
       Epic       -1.5s (+1.5s per stack)
@@ -188,6 +207,7 @@ GREEN ITEMS (10)
 
 16. FIELD ACCELERATOR                                         [KEPT]  M
     Base: after the boss dies, Teleporter radius +20% (+20% per stack), kills add +1% charge.
+    The zone bonus is the "Accelerated Field" buff.
       Uncommon   +1.5% charge per kill; +5% (+5% per stack) attack speed in the zone
       Rare       +2% per kill;  +10% (+10% per stack)
       Epic       +3% per kill;  +15% (+15% per stack)
@@ -200,6 +220,7 @@ GREEN ITEMS (10)
       Rare       12m zone, +15% (+15% per stack)
       Epic       15m zone, +25% (+25% per stack)
       Legendary  20m zone, +40% (+40% per stack)
+    (The zone doesn't record who made it, so the best quality on the team decides.)
 
 18. PROTOTYPE JET BOOTS                                       [KEPT]  M
     Base: +1 jump that ignites for 400% (+200% per stack) base damage in 7.5m; 10s recharge.
@@ -211,27 +232,30 @@ GREEN ITEMS (10)
 19. MAN-O'-WAR                                                [CHANGED]  H
     Base: on kill, discharge for 150% base damage on up to 3 (+2 per stack) targets
           within 20m (+4m per stack).
-    Idea: kills can release a friendly jellyfish that drifts to the nearest enemy and
-          explodes.
+    Idea: kills can release a friendly jellyfish (the real Jellyfish model) that
+          drifts to the nearest enemy within 40m and explodes.
       Uncommon   10% (+10% per stack) chance on kill; 300% base damage, 6m explosion
       Rare       20% (+15% per stack); 500% base damage, 7m explosion
       Epic       35% (+20% per stack); 800% base damage, 8m explosion
-      Legendary  50% (+25% per stack); 1200% base damage, 10m explosion, and its
-                 explosion counts as a kill trigger for Man-o'-War itself
-    (Chance capped at 90%.)
+      Legendary  50% (+25% per stack); 1200% base damage, 10m explosion
+    (Chance capped at 90%. At every tier, a jellyfish kill is a normal kill, so it can
+    release more jellyfish.)
 
-20. LOW QUALITY SPEAKERS                                      [CHANGED]  H
+20. LOW QUALITY SPEAKERS                                      [CHANGED, TUNED]  H
     Base: chance when hit (10%, more at low health) to stun enemies and destroy
           projectiles in 12m (+6m per stack).
     Idea: instead of just being stunned, enemies are LAUNCHED into the air and take
           damage when they land.
-      Uncommon   launched 6m high
-      Rare       launched 12m high
-      Epic       launched 20m high
-      Legendary  launched 30m high, and they take double landing damage
+      Uncommon   launched 10m high
+      Rare       launched 20m high
+      Epic       launched 35m high
+      Legendary  launched 55m high, and they take double landing damage
     Landing damage follows the game's fall damage rule (more height = more damage).
+    Bosses take at most 10% of their max health per landing. Flying enemies can't
+    fall, so they take the landing hit at once.
+    v3: heights raised from 6 / 12 / 20 / 30m ("funnier launched higher").
 
-21. NEUROTOXIN GLAND                                          [CHANGED]  H
+21. NEUROTOXIN GLAND                                          [CHANGED, NOT YET]  H
     Base: daze enemies on hit for 2s (+2s per stack); they miss 15% of attacks per
           debuff they have.
     Idea: when a dazed enemy misses, the attack hits another enemy within 20m instead.
@@ -240,7 +264,7 @@ GREEN ITEMS (10)
       Epic       150% (+75% per stack)
       Legendary  250% (+100% per stack)
 
-22. STICKY OVERLOADER                                         [CHANGED]  M
+22. STICKY OVERLOADER                                         [CHANGED, NOT YET]  M
     Base: 5% chance to attach a living bomb that grows with every hit, up to
           20 (+5 per stack) times; explodes after 1s without growing.
     Idea: each time the bomb grows, it can clone itself somewhere else on the same
@@ -279,10 +303,12 @@ RED ITEMS (9)
           for 20s (+10s per stack).
     Idea: drones last longer, a second drone can spawn, and every new drone also
           extends the drones you already have.
-      Uncommon   +10s;  15% (+15% per stack) extra drone;  new drones add +5s to existing ones
-      Rare       +20s;  30% (+30% per stack);  +10s to existing
-      Epic       +35s;  50% (+50% per stack);  +15s to existing
-      Legendary  +60s;  75% (+75% per stack);  +25s to existing
+      Uncommon   30s;  15% (+15% per stack) extra drone;  new drones add +5s to existing ones
+      Rare       40s;  30% (+30% per stack);  +10s to existing
+      Epic       55s;  50% (+50% per stack);  +15s to existing
+      Legendary  80s;  75% (+75% per stack);  +25s to existing
+    (Durations are totals for one item: base 20s + 10 / 20 / 35 / 60s. The extra drone
+    spawns slightly to the side, so it doesn't overlap the first one.)
 
 26. ERRATIC GADGET                                            [CHANGED]  M
     Base: your lightning strikes twice; 10% chance on hit to fire chain lightning for
@@ -303,6 +329,7 @@ RED ITEMS (9)
       Rare       20% stun; +20% (+20% per stack); 1 random debuff for 4s
       Epic       30% stun; +30% (+30% per stack); 2 random debuffs for 5s
       Legendary  45% stun; +50% (+50% per stack); 3 random debuffs for 6s
+    ("Razed" doesn't record who caused it, so the best quality on the team decides.)
 
 28. GREEN CHOCOLATE                                           [KEPT]  M
     Base: when hit for 20%+ of max health, the excess is halved, and you gain +50% base
@@ -320,12 +347,13 @@ RED ITEMS (9)
       Rare       0.5% (+0.25% per stack)
       Epic       1% (+0.5% per stack)
       Legendary  1.5% (+0.5% per stack)
-    (Poison ticks several times per second, so these add up fast: see open questions.)
+    (Poison ticks 4 times per second: see decision D.)
 
 30. N'KOTA'S HERITAGE                                         [CHANGED]  E
     Base: get 1 (+1 per stack) item on level up; rarity goes up with level.
     Idea: every item it gives is a quality item, with the same quality as the
-          Heritage itself. No randomness.
+          Heritage itself. No randomness. Only items given to players: AI allies
+          holding a Heritage get normal items.
       Uncommon   items are Uncommon quality
       Rare       items are Rare quality
       Epic       items are Epic quality
@@ -334,11 +362,12 @@ RED ITEMS (9)
 31. PORTABLE REACTOR                                          [KEPT + you]  M
     Base: invulnerable with +100% movement speed for the first 80s (+40s per stack)
           of each stage.
-      Uncommon   +20s; +20% (+20% per stack) damage while invulnerable
-      Rare       +40s; +40% (+40% per stack)
-      Epic       +60s; +70% (+70% per stack)
-      Legendary  +100s; +100% (+100% per stack), and chests opened while invulnerable
-                 drop 2 items instead of 1
+      Uncommon   100s; +20% (+20% per stack) damage while invulnerable
+      Rare       120s; +40% (+40% per stack)
+      Epic       140s; +70% (+70% per stack)
+      Legendary  180s; +100% (+100% per stack), and chests opened while invulnerable
+                 drop 2 items instead of 1 (two copies of the same item)
+    (Durations are totals for one item: base 80s + 20 / 40 / 60 / 100s.)
 
 32. SWIFT SKATEBOARD                                          [KEPT]  E
     Base: sprint in any direction; using a skill gives +20% (+15% per stack) movement
@@ -348,7 +377,7 @@ RED ITEMS (9)
       Epic       up to 8 stacks; +9% (+9% per stack)
       Legendary  up to 10 stacks; +12% (+12% per stack)
 
-33. TOY SOLDIERS                                              [CHANGED]  H
+33. TOY SOLDIERS                                              [CHANGED, NOT YET]  H
     Base: summon 4 Toy Commandos during the Teleporter event, with 100% (+50% per
           stack) damage and 100% (+100% per stack) health.
     Idea: the soldiers grow. A Legendary summons a single GIANT soldier that's
@@ -366,8 +395,8 @@ BOSS ITEM (1)
 34. HAUNTED LAMP (internal name ShackledLamp)                 [CHANGED]  M
     Base: every 5 primary uses, fire a haunted projectile for 200% (+200% per stack)
           base damage.
-    Idea: fires more often, and a kill can fire another projectile from the victim
-          toward the nearest enemy. Those can chain.
+    Idea: fires more often, and a kill can fire another projectile from the victim,
+          aimed at the nearest enemy. Those can chain.
       Uncommon   every 4 uses; 15% (+10% per stack) chance on kill to fire again
       Rare       every 4 uses; 25% (+10% per stack)
       Epic       every 3 uses; 40% (+10% per stack)
@@ -380,9 +409,11 @@ EQUIPMENT (6)
 =====================================================================
 (Quality equipment has no stacks: only the tier of the one you hold counts.)
 
-35. BACK THRUSTER                                             [KEPT]  H
+35. BACK THRUSTER                                             [KEPT, TUNED]  H
     Base: for 8s, build up to +200% movement speed while moving in a straight line.
-      Uncommon   10s; ramming enemies at full speed deals 300% base damage
+    Ramming works from 60% of the thruster's top speed.
+    v3: it needed full speed, which was too hard to reach while steering at enemies.
+      Uncommon   10s; ramming enemies at speed deals 300% base damage
       Rare       12s; 500% base damage
       Epic       15s; 800% base damage
       Legendary  20s; 1200% base damage, and rammed enemies are stunned
@@ -402,13 +433,17 @@ EQUIPMENT (6)
       Epic       radius +60%;  2 banners at a time
       Legendary  radius +100%; 3 banners at a time
 
-38. SIMPLE MAGNET                                             [KEPT]  E
-    Base: pull pickups within 150m; 10% "treasure" chance in the config.
-      Uncommon   15% treasure chance
-      Rare       20%
-      Epic       30%
-      Legendary  45%
-    (I still need to read Magnet's code to confirm what "treasure" does.)
+38. SIMPLE MAGNET                                             [CHANGED, TUNED]  M
+    Base: pull pickups within 150m.
+    Idea: Starstorm2 never reads its "treasure chance" setting, so scaling it would do
+          nothing. Instead, each item on the ground the magnet pulls can be upgraded
+          to the magnet's quality. Each item gets ONE roll ever, so pulling the same
+          item again does nothing.
+      Uncommon   5% chance to become Uncommon quality
+      Rare       8% chance to become Rare quality
+      Epic       12% chance to become Epic quality
+      Legendary  20% chance to become Legendary quality
+    v3: was 10 / 15 / 25 / 40% with a new roll on every pull ("way too broken").
 
 39. M.I.D.A.S.                                                [KEPT]  E
     Base: sacrifice 50% of current health; gain gold equal to the health lost or a
@@ -426,6 +461,7 @@ EQUIPMENT (6)
       Epic       radius +60%;  7% max health/s
       Legendary  radius +100%; 10% max health/s; lasts 25s; allies can use skills
                  inside it
+    (Radius totals: 30 / 35 / 40 / 50m.)
 
 
 
@@ -434,30 +470,45 @@ DECISIONS (all resolved)
 =====================================================================
 
 A. EMPTY DIARY (#5): rarity is rolled like a small chest; the Diary only sets the
-   quality of the item it gives.
+   quality of the item it gives. Starstorm2 consumes the diary by removing the BASE
+   item, which would never use up a quality diary, so MoreQuality consumes quality
+   diaries itself (same levels, plus the item).
 
-B. MAN-O'-WAR (#19): the jellyfish is a homing projectile that looks like the real
-   Jellyfish (same model and animation) and explodes on contact. No AI ally.
+B. MAN-O'-WAR (#19): the jellyfish is a homing orb that looks like the real
+   Jellyfish (same model) and explodes on contact. No AI ally.
 
 C. LOW QUALITY SPEAKERS (#20): the mod computes landing damage itself, like vanilla's
-   Breaching Fin. Flying enemies are slammed downward instead of launched. Bosses are
-   launched too.
+   Breaching Fin. Flying enemies take the landing hit at once. Bosses are launched
+   too, with landing damage capped at 10% of their max health.
 
-D. INSECTICIDE (#29): numbers kept as written (about 13% kill chance per 3s poison
-   at Legendary). Bosses are never affected.
+D. INSECTICIDE (#29): numbers kept as written. The poison ticks 4 times per second
+   (not 3 as first assumed), so a 3s poison at Legendary has about a 17% chance to
+   kill. Bosses are never affected.
 
 E. NEUROTOXIN GLAND (#21): redirected attacks hit the other enemy instantly, with a
-   small lightning-style visual so it reads clearly.
+   small lightning-style visual so it reads clearly. (Not implemented yet.)
 
 
 =====================================================================
 SUMMARY
 =====================================================================
-  Changed from v1: 16    Kept: 24 (6 of them with your additions)
-  Effort:  E 5   M 29   H 6
-    Hard: Ice Tool (falling ice), Man-o'-War (jellyfish), Low Quality Speakers
-          (launch physics), Neurotoxin Gland (redirected attacks), Toy Soldiers
-          (giant soldier), Back Thruster (ramming)
+  Implemented: 36 of 40 (the 4 beta items are designed but not built)
+  Tuned after the first test (v3): Coffee Bag, Guarding Amulet, Low Quality Speakers,
+    Back Thruster, Simple Magnet
 
-Every item also needs 4 descriptions (one per tier) in Quality's text format, with the
-quality icon marking the changed numbers.
+Descriptions: when quality changes a number Starstorm2 already shows, the whole
+description is rewritten with the new value in place, marked with Quality's diamond.
+When quality only adds an effect, Starstorm2's own text is kept and the new effect is
+added under it.
+
+Buffs added by the mod (named in LookingGlass tooltips): Blood Rush, Stim: Armor,
+Stim: Speed, Stim: Damage, Stim: Crit, Stim: Regeneration, Accelerated Field.
+
+
+=====================================================================
+CHANGELOG OF THIS DOCUMENT
+=====================================================================
+  v1  first proposals
+  v2  your review applied; open questions resolved
+  v3  synced with MoreQuality 0.1.0: first-test tuning, Magnet redesign, beta items
+      marked as not yet implemented, totals shown for stats that already exist
