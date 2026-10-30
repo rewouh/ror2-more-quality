@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.3
+
+- Short description now mentions Hallowed Concepts.
+
 ## 0.2.2
 
 - Mod page wording.
