@@ -4,8 +4,6 @@
 
 Adds [Quality](https://thunderstore.io/c/riskofrain2/p/Goorakh/Quality/) variants to items Quality doesn't cover. Every Uncommon, Rare, Epic and Legendary version keeps the item's normal effect and gets its own quality bonus, from stronger numbers to brand-new effects.
 
-Descriptions work like Quality's own: numbers quality changes are shown in place with the quality diamond, and new effects are added under the item's normal text.
-
 The mod has two separate parts:
 
 | Part | Status |

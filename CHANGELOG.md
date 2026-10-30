@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.2
+
+- Mod page wording.
+
 ## 0.2.1
 
 - The mod page now lists every Hallowed item and Hex with its quality effects.
