@@ -10,7 +10,7 @@ namespace MoreQuality.Items
     // Quality backpacks fire a bigger missile that explodes on impact. Legendary is absurdly huge and slow.
     internal static class ArmedBackpack
     {
-        private static readonly T4 Size = new T4(2f, 3.5f, 6f, 12f);
+        private static readonly T4 Size = new T4(6f, 10.5f, 18f, 36f);
         private static readonly T4 Radius = new T4(4f, 7f, 11f, 20f);
         private static readonly T4 BonusDamage = new T4(2f, 5f, 10f, 20f);   // on top of the base 400% per stack
         private static readonly GameObject[] missiles = new GameObject[4];
@@ -86,7 +86,7 @@ namespace MoreQuality.Items
             var coefficient = SS2.Items.ArmedBackpack.backpackDamageCoeff * __instance.stack + Q.Sum(counts, BonusDamage);
             var target = damageReport.attacker;
             if (!damageReport.attackerBody || damageReport.attackerTeamIndex == body.teamComponent.teamIndex) target = null;
-            var origin = body.corePosition + Vector3.up * (body.radius + 1.5f * Size[tier]);
+            var origin = body.corePosition + Vector3.up * (body.radius + 3f + 0.3f * Size[tier]);   // clear of you, without starting too high
             MissileUtils.FireMissile(origin, body, default(ProcChainMask), target, body.damage * coefficient,
                 Util.CheckRoll(body.crit, body.master), missiles[(int)tier], DamageColorIndex.Item, addMissileProc: false);
             return false;

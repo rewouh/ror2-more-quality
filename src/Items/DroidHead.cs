@@ -57,7 +57,7 @@ namespace MoreQuality.Items
             try { __instance.OnKilledOtherServer(damageReport); }
             finally { summoningExtra = false; }
             var extra = extraDrone ? extraDrone.GetBody() : null;
-            if (extra && extra != drone.GetBody()) TeleportHelper.TeleportBody(extra, extra.transform.position + Random.onUnitSphere * 3f + Vector3.up * 2f, false);
+            if (extra && extra != drone.GetBody()) TeleportHelper.TeleportBody(extra, extra.footPosition + Random.onUnitSphere * 3f + Vector3.up * 2f, false);
         }
     }
 }

@@ -1,19 +1,28 @@
 # MoreQuality
 
-Adds [Quality](https://thunderstore.io/c/riskofrain2/p/Goorakh/Quality/) variants to **Starstorm 2**'s items and equipment. Every Uncommon, Rare, Epic and Legendary version keeps the item's normal effect and gets its own quality bonus, from stronger numbers to brand-new effects.
+> **Beta, in active development.** Expect balance changes and the occasional bug; reports are very welcome (see Feedback below).
+
+Adds [Quality](https://thunderstore.io/c/riskofrain2/p/Goorakh/Quality/) variants to items Quality doesn't cover. Every Uncommon, Rare, Epic and Legendary version keeps the item's normal effect and gets its own quality bonus, from stronger numbers to brand-new effects.
 
 Descriptions work like Quality's own: numbers quality changes are shown in place with the quality diamond, and new effects are added under the item's normal text.
 
-## Items
+The mod has two separate parts:
+
+| Part | Status |
+|---|---|
+| **Starstorm 2** items and equipment | Available (36 pickups) |
+| **Hallowed Concepts** Hallowed items and Hexes | Planned |
+
+## Starstorm 2
 
 Values are Uncommon / Rare / Epic / Legendary.
 
 ### Common
 | Item | Quality effect |
 |---|---|
-| Armed Backpack | Bigger, exploding missiles: x2 / x3.5 / x6 / x12 size, 4 / 7 / 11 / 20m blast |
+| Armed Backpack | Huge, exploding missiles: x6 / x10.5 / x18 / x36 size, 4 / 7 / 11 / 20m blast |
 | Broken Blood Tester | Heals grant **Blood Rush**: movement speed, then attack speed, damage and armor at higher tiers |
-| Coffee Bag | More beans (12 / 14 / 17 / 22%). Grabbing a bean with 5+ beans cuts all cooldowns by 0.5 / 1 / 1.5 / 2.5s. Legendary: beans fly to you |
+| Coffee Bag | More beans (12 / 14 / 17 / 22%). Grabbing a bean with 5+ beans cuts all cooldowns by 0.5 / 1 / 1.5 / 2.5s. Legendary: beans within 40m fly to you |
 | Detritive Trematode | Infestations spread to 1 / 2 / 3 / 5 nearby enemies when the host dies |
 | Empty Diary | Also gives a random item of the diary's quality when consumed |
 | Fork | 24 / 36 / 52 / 72% base damage per stack |
@@ -64,7 +73,16 @@ Values are Uncommon / Rare / Epic / Legendary.
 | M.I.D.A.S. | Costs less health, pays more gold |
 | White Flag | Bigger flag that heals allies. Legendary: only silences enemies |
 
-Starstorm 2's beta items (Ice Tool, Neurotoxin Gland, Sticky Overloader, Toy Soldiers) aren't covered yet.
+Starstorm 2's beta items (Ice Tool, Neurotoxin Gland, Sticky Overloader, Toy Soldiers) aren't covered.
+
+## Hallowed Concepts (planned)
+
+Quality doesn't cover the DLC's new tiers yet, so MoreQuality will:
+
+- give the 11 **Hallowed items** quality variants with stronger effects;
+- give the 14 **Hexes** quality variants that are *worse*. The payoff comes when you cleanse them at a Hallowed Shrine: every quality Hex you drain gives the Hallowed Potential's choices a chance to be quality items.
+
+If Quality adds Hallowed Concepts support itself, this part will be removed from MoreQuality in favour of the official version.
 
 ## Notes
 

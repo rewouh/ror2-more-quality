@@ -12,8 +12,10 @@
     <NoWarn>$(NoWarn);CS0618;MSB3277;NU1701</NoWarn>
   </PropertyGroup>
 
-  <!-- Local builds also copy the mod into this r2modman profile. Skipped when it doesn't exist (CI). -->
+  <!-- Local builds also copy the mod into this r2modman profile (skipped when it doesn't exist, as in CI,
+       or with -p:SkipDeploy=true), after checking it against the real game assemblies. -->
   <PropertyGroup>
+    <GameManaged>C:\Program Files (x86)\Steam\steamapps\common\Risk of Rain 2\Risk of Rain 2_Data\Managed</GameManaged>
     <Profile>C:\Users\pierr\AppData\Roaming\Thunderstore Mod Manager\DataFolder\RiskOfRain2\profiles\ModdedMulitplayer\BepInEx</Profile>
     <DeployDir>$(Profile)\plugins\Rewouh-MoreQuality</DeployDir>
   </PropertyGroup>
@@ -39,13 +41,21 @@
 
   <ItemGroup>
     <None Include="lang\**\*" CopyToOutputDirectory="PreserveNewest" />
+    <!-- tools/AccessCheck is its own program. -->
+    <Compile Remove="tools\**" />
+    <None Remove="tools\**" />
   </ItemGroup>
 
   <Target Name="CheckLibs" BeforeTargets="ResolveAssemblyReferences">
     <Error Condition="!Exists('libs\Starstorm2.dll')" Text="libs/ is empty. Run: python tools/fetch_deps.py" />
   </Target>
 
-  <Target Name="Deploy" AfterTargets="Build" Condition="Exists('$(Profile)')">
+  <!-- The NuGet game references make private members look public; fail if the DLL uses one. See tools/AccessCheck. -->
+  <Target Name="AccessCheck" AfterTargets="Build" Condition="Exists('$(GameManaged)') And Exists('$(Profile)')">
+    <Exec Command="dotnet run --project tools/AccessCheck -c Release -- &quot;$(TargetPath)&quot; &quot;$(GameManaged)&quot; &quot;$(Profile)\core&quot; &quot;$(Profile)\plugins&quot;" />
+  </Target>
+
+  <Target Name="Deploy" AfterTargets="AccessCheck" Condition="Exists('$(Profile)') And '$(SkipDeploy)' != 'true'">
     <ItemGroup>
       <LangFiles Include="$(OutDir)lang\**\*" />
     </ItemGroup>

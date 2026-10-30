@@ -77,6 +77,11 @@ namespace MoreQuality.Items
                     // Strip everything that would make it a real, targetable character.
                     foreach (var hurtBox in jelly.GetComponentsInChildren<HurtBox>(true)) Destroy(hurtBox);
                     foreach (var collider in jelly.GetComponentsInChildren<Collider>(true)) Destroy(collider);
+                    // CharacterModel starts invisible and only a living body makes it visible again, so
+                    // without a body it would hide every renderer. It can't be removed (the skin
+                    // controller needs it), so switch it off.
+                    foreach (var characterModel in jelly.GetComponentsInChildren<CharacterModel>(true)) characterModel.enabled = false;
+                    jelly.SetActive(true);
                     foreach (var renderer in jelly.GetComponentsInChildren<Renderer>(true)) renderer.enabled = true;
                 }
                 catch (System.Exception e)

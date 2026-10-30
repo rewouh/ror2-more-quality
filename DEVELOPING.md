@@ -9,7 +9,8 @@ dotnet build -c Release
 
 - `tools/fetch_deps.py` downloads the mods that aren't on NuGet (Quality, Starstorm2, MoonstormSharedUtils, RoR2BepInExPack) from Thunderstore into `libs/`, at the versions listed in `thunderstore.toml`. Run it again after changing those versions.
 - Game, BepInEx and R2API references come from NuGet (`nuget.config` adds the BepInEx feed).
-- On this PC, the build also copies the DLL and `lang/` into the ModdedMulitplayer r2modman profile (`plugins/Rewouh-MoreQuality`). Elsewhere (CI) that step is skipped.
+- On this PC, the build also copies the DLL and `lang/` into the ModdedMulitplayer r2modman profile (`plugins/Rewouh-MoreQuality`). Add `-p:SkipDeploy=true` to build without copying. Elsewhere (CI) that step is skipped.
+- **AccessCheck:** the NuGet game references are publicized, so the compiler can silently use a member that is private in the real game (for example `CharacterBody.transform`), which then throws at runtime. On this PC every build runs `tools/AccessCheck` against the real game and profile DLLs and fails if the mod uses anything that isn't accessible.
 
 ## Text and icon
 

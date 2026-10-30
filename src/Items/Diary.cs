@@ -38,7 +38,7 @@ namespace MoreQuality.Items
             var team = body.teamComponent.teamIndex;
             var experience = TeamManager.GetExperienceForLevel(TeamManager.instance.GetTeamLevel(team) + (uint)SS2.Items.Diary.extraLevels)
                 - TeamManager.instance.GetTeamCurrentLevelExperience(team);
-            ExperienceManager.instance.AwardExperience(body.transform.position, body, experience);
+            ExperienceManager.instance.AwardExperience(body.corePosition, body, experience);
 
             inventory.RemoveItemPermanent(qualityDiary, 1);
             inventory.GiveItemPermanent(SS2Content.Items.DiaryConsumed.itemIndex, 1);

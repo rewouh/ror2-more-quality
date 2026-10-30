@@ -55,7 +55,7 @@ EQUIPMENT = {}
 
 ITEMS["ArmedBackpack"] = ("Fires a much bigger, exploding missile.", per_tier(
     "Chance on taking damage to fire a {0} missile for {1} " + stack("+400% per stack") + " base damage that " + Q + " explodes in a {2} radius. Chance scales with damage taken.",
-    [q("x2 size"), q("x3.5 size"), q("x6 size"), q("x12 size, slow-moving")],
+    [q("x6 size"), q("x10.5 size"), q("x18 size"), q("x36 size, slow-moving")],
     [q("600%", dmg), q("900%", dmg), q("1400%", dmg), q("2400%", dmg)],
     [util("4m"), util("7m"), util("11m"), util("20m")]))
 
@@ -73,7 +73,7 @@ ITEMS["CoffeeBag"] = ("More beans; beans at 5+ stacks cut your cooldowns.", per_
     [q("12%", dmg), q("14%", dmg), q("17%", dmg), q("22%", dmg)],
     [q("0.5s"), q("1s"), q("1.5s"), q("2.5s")],
     ["+0.5s", "+1s", "+1.5s", "+2.5s"],
-    ["", "", "", " Your beans " + q("fly to you") + "."]))
+    ["", "", "", " Beans within " + q("40m") + " fly to you."]))
 
 ITEMS["DetritiveTrematode"] = ("Infestations spread when the host dies.", add(per_tier(
     "An infested enemy that dies spreads the infestation to {0} " + stack("{1} per stack") + " {2} within {3}, at any health.",
