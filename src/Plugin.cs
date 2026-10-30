@@ -17,7 +17,7 @@ namespace MoreQuality
     [BepInDependency(R2API.ContentManagement.R2APIContentManager.PluginGUID)]
     public sealed class MoreQualityPlugin : BaseUnityPlugin
     {
-        public const string GUID = "com.pierre.MoreQuality";
+        public const string GUID = "com.rewouh.MoreQuality";
         public const string Name = "MoreQuality";
         public const string Version = "0.1.0";
 

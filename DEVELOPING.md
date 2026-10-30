@@ -9,7 +9,7 @@ dotnet build -c Release
 
 - `tools/fetch_deps.py` downloads the mods that aren't on NuGet (Quality, Starstorm2, MoonstormSharedUtils, RoR2BepInExPack) from Thunderstore into `libs/`, at the versions listed in `thunderstore.toml`. Run it again after changing those versions.
 - Game, BepInEx and R2API references come from NuGet (`nuget.config` adds the BepInEx feed).
-- On this PC, the build also copies the DLL and `lang/` into the ModdedMulitplayer r2modman profile (`plugins/Pierre-MoreQuality`). Elsewhere (CI) that step is skipped.
+- On this PC, the build also copies the DLL and `lang/` into the ModdedMulitplayer r2modman profile (`plugins/Rewouh-MoreQuality`). Elsewhere (CI) that step is skipped.
 
 ## Text and icon
 

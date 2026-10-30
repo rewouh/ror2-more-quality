@@ -15,7 +15,7 @@
   <!-- Local builds also copy the mod into this r2modman profile. Skipped when it doesn't exist (CI). -->
   <PropertyGroup>
     <Profile>C:\Users\pierr\AppData\Roaming\Thunderstore Mod Manager\DataFolder\RiskOfRain2\profiles\ModdedMulitplayer\BepInEx</Profile>
-    <DeployDir>$(Profile)\plugins\Pierre-MoreQuality</DeployDir>
+    <DeployDir>$(Profile)\plugins\Rewouh-MoreQuality</DeployDir>
   </PropertyGroup>
 
   <!-- Game and BepInEx: reference-only NuGet packages (nuget.config adds the BepInEx feed). -->
