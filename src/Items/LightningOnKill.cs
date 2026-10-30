@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Linq;
 using ItemQualities;
 using R2API;
@@ -51,38 +52,63 @@ namespace MoreQuality.Items
         }
 
         // Unity won't parent objects under a prefab at load time, so each orb effect instance builds its
-        // jellyfish when it appears: hide the orb's own visuals, then add a copy of the Jellyfish model.
+        // jellyfish when it appears: hide the orb's own visuals, then add the Jellyfish's meshes.
+        // A copy of the whole character model stays invisible (its CharacterModel, skin and animator
+        // all expect a living body), so the meshes are drawn as plain static meshes in their rest pose.
         private sealed class JellyfishVisual : MonoBehaviour
         {
-            private static GameObject model;
+            private struct Part { public Mesh Mesh; public Material[] Materials; public Matrix4x4 Pose; }
+            private static List<Part> parts;
+
+            private static List<Part> Parts()
+            {
+                if (parts != null) return parts;
+                parts = new List<Part>();
+                var body = LegacyResourcesAPI.Load<GameObject>("Prefabs/CharacterBodies/JellyfishBody");
+                var locator = body ? body.GetComponent<ModelLocator>() : null;
+                var model = locator ? locator.modelTransform : null;
+                if (!model) return parts;
+                var characterModel = model.GetComponent<CharacterModel>();
+                foreach (var renderer in model.GetComponentsInChildren<Renderer>(true))
+                {
+                    Mesh mesh = null;
+                    var skinned = renderer as SkinnedMeshRenderer;
+                    if (skinned) mesh = skinned.sharedMesh;
+                    else if (renderer is MeshRenderer) { var filter = renderer.GetComponent<MeshFilter>(); mesh = filter ? filter.sharedMesh : null; }
+                    if (!mesh) continue;
+                    var materials = renderer.sharedMaterials;
+                    if (characterModel && (materials.Length == 0 || !materials[0]))
+                    {
+                        foreach (var info in characterModel.baseRendererInfos)
+                        {
+                            if (info.renderer == renderer && info.defaultMaterial) materials = new[] { info.defaultMaterial };
+                        }
+                    }
+                    parts.Add(new Part { Mesh = mesh, Materials = materials, Pose = model.worldToLocalMatrix * renderer.transform.localToWorldMatrix });
+                }
+                return parts;
+            }
 
             private void Start()
             {
                 try
                 {
-                    if (!model)
-                    {
-                        var body = LegacyResourcesAPI.Load<GameObject>("Prefabs/CharacterBodies/JellyfishBody");
-                        var locator = body ? body.GetComponent<ModelLocator>() : null;
-                        model = locator && locator.modelTransform ? locator.modelTransform.gameObject : null;
-                    }
-                    if (!model) return;
+                    var meshes = Parts();
+                    if (meshes.Count == 0) return;
 
                     foreach (var particles in GetComponentsInChildren<ParticleSystem>(true)) particles.gameObject.SetActive(false);
                     foreach (var renderer in GetComponentsInChildren<Renderer>(true)) renderer.enabled = false;
 
-                    var jelly = Instantiate(model, transform, false);
-                    jelly.transform.localPosition = Vector3.zero;
-                    jelly.transform.localRotation = Quaternion.identity;
-                    // Strip everything that would make it a real, targetable character.
-                    foreach (var hurtBox in jelly.GetComponentsInChildren<HurtBox>(true)) Destroy(hurtBox);
-                    foreach (var collider in jelly.GetComponentsInChildren<Collider>(true)) Destroy(collider);
-                    // CharacterModel starts invisible and only a living body makes it visible again, so
-                    // without a body it would hide every renderer. It can't be removed (the skin
-                    // controller needs it), so switch it off.
-                    foreach (var characterModel in jelly.GetComponentsInChildren<CharacterModel>(true)) characterModel.enabled = false;
-                    jelly.SetActive(true);
-                    foreach (var renderer in jelly.GetComponentsInChildren<Renderer>(true)) renderer.enabled = true;
+                    foreach (var part in meshes)
+                    {
+                        var piece = new GameObject("JellyfishPart");
+                        piece.transform.SetParent(transform, false);
+                        piece.transform.localPosition = part.Pose.GetColumn(3);
+                        piece.transform.localRotation = part.Pose.rotation;
+                        piece.transform.localScale = part.Pose.lossyScale;
+                        piece.AddComponent<MeshFilter>().sharedMesh = part.Mesh;
+                        piece.AddComponent<MeshRenderer>().sharedMaterials = part.Materials;
+                    }
                 }
                 catch (System.Exception e)
                 {

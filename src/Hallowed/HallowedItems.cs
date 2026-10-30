@@ -282,7 +282,8 @@ namespace MoreQuality.Hallowed
 
         internal static void Init()
         {
-            GlobalEventManager.onCharacterDeathGlobal += OnDeath;
+            // Runs before the demon's own reaction to its host dying (it detaches, or dies if barely charged).
+            Hooks.Patch(typeof(DreamDemonProjectileController), "OnCharacterDeath", typeof(NightmareDemon), prefix: nameof(HostDied));
             RoR2Application.onLoad += () => demonPrefab = DemonPrefab();
             Hooks.Patch(typeof(ProjectileManager), nameof(ProjectileManager.FireProjectile), typeof(NightmareDemon), prefix: nameof(StrongerDemon), args: new[] { typeof(FireProjectileInfo) });
             Hooks.Patch(typeof(DreamDemonProjectileController), "FixedUpdate", typeof(NightmareDemon), prefix: nameof(DemonUpdate));
@@ -324,20 +325,20 @@ namespace MoreQuality.Hallowed
             if (stored > charge(__instance)) __instance.NetworkstoredDamageCoefficient = stored;
         }
 
-        private static void OnDeath(DamageReport report)
+        // Returning false skips the game's handler: the demon has left for a new host.
+        private static bool HostDied(DreamDemonProjectileController __instance, DamageReport damageReport)
         {
-            var victim = report.victimBody;
-            if (!NetworkServer.active || !victim) return;
+            var demon = __instance;
+            var victim = damageReport.victimBody;
+            if (!NetworkServer.active || !victim || demon.attachedToBody != victim) return true;
             if (!demonPrefab) demonPrefab = DemonPrefab();
-            foreach (var demon in InstanceTracker.GetInstancesList<DreamDemonProjectileController>().ToList())
             {
-                if (!demon || demon.attachedToBody != victim) continue;
                 var projectile = demon.GetComponent<ProjectileController>();
                 var owner = projectile && projectile.owner ? projectile.owner.GetComponent<CharacterBody>() : null;
                 var tier = Q.Highest(Q.Counts(owner, DLC4Content.Items.DreamDemon));
-                if (tier == QualityTier.None || !Util.CheckRoll(JumpChance[tier], owner.master)) continue;
+                if (tier == QualityTier.None || !Util.CheckRoll(JumpChance[tier], owner.master)) return true;
                 var next = Enemies.Near(victim.corePosition, JumpRange, owner.teamComponent.teamIndex, victim.healthComponent).FirstOrDefault();
-                if (!next || !next.body.mainHurtBox || !demonPrefab) continue;
+                if (!next || !next.body.mainHurtBox || !demonPrefab) return true;
 
                 pendingCharge[next] = charge(demon);
                 var damage = demon.GetComponent<ProjectileDamage>();
@@ -359,6 +360,7 @@ namespace MoreQuality.Hallowed
                 }
                 finally { jumping = false; }
                 NetworkServer.Destroy(demon.gameObject);
+                return false;
             }
         }
     }
