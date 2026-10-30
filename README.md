@@ -91,6 +91,11 @@ If Quality adds Hallowed Concepts support itself, this part will be removed from
 - **Config:** rewritten descriptions use Starstorm 2's default values. If you changed Starstorm 2's item config, the effects still use your values, but some descriptions will show the defaults.
 - Buff tooltips have proper names and descriptions with [LookingGlass](https://thunderstore.io/c/riskofrain2/p/DropPod/LookingGlass/).
 
+## Known issues
+
+- **Man-o'-War:** the jellyfish looks like a small red orb while it flies (its explosion is the real Jellyfish nova).
+- **Nightmare Demon:** when its host dies, a demon sometimes falls to the ground and fades instead of jumping to a nearby enemy.
+
 ## Feedback
 
 Bugs and balance ideas: open an issue on the GitHub page.

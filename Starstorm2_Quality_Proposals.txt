@@ -149,6 +149,7 @@ MAN-O'-WAR
     Epic       35% (+20%); 800%, 8m
     Legendary  50% (+25%); 1200%, 10m
   Chance capped at 90%. A jellyfish kill is a normal kill, so it can release more.
+  KNOWN BUG: the jellyfish shows as a red orb in flight (the model doesn't render).
 
 LOW QUALITY SPEAKERS
   Base: chance when hit to stun enemies and destroy projectiles in 12m (+6m per stack).
@@ -359,6 +360,7 @@ NIGHTMARE DEMON
   Quality: demons are x1.25 / 1.5 / 2 / 3 bigger and explode for 750 / 900 / 1200 / 1800%
   (x1.25 / 1.5 / 2 / 3). When a haunted enemy dies before its demon exploded, 25 / 40 / 60 /
   90% chance the demon jumps to the nearest enemy within 30m, keeping its charge.
+  KNOWN BUG: the demon sometimes falls to the ground and dies instead of jumping.
 
 RITUAL HELMET
   Base: sprinting builds charges; at full charge a skull hits enemies, scaling with speed.
