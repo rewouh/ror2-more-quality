@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.1
+
+- The mod page now lists every Hallowed item and Hex with its quality effects.
+
 ## 0.2.0
 
 - New: Hallowed Concepts support. Quality variants for the 11 Hallowed items and the 14 Hexes. A quality Hex is worse, but cleansing it at a Hallowed Shrine guarantees a choice of its quality.

@@ -77,13 +77,54 @@ Starstorm 2's beta items (Ice Tool, Neurotoxin Gland, Sticky Overloader, Toy Sol
 
 ## Hallowed Concepts
 
-Quality doesn't cover the DLC's new tiers yet, so MoreQuality adds them:
+Quality doesn't cover the DLC's new tiers yet, so MoreQuality adds them. If Quality adds Hallowed Concepts support itself, this part will be removed from MoreQuality in favour of the official version.
 
-- The 11 **Hallowed items** get quality variants with new twists (Vengeful Spirit explodes when it dies, Vile Censer links enemies so they share damage, Infernal Mark makes you stronger for every enemy you brand, and more).
-- The 14 **Hexes** get quality variants that are *worse* (Legendary Hex of Pain takes 80% of your health, Legendary Hex of Leaping stops you jumping...). The payoff: every quality Hex you cleanse at a Hallowed Shrine **guarantees a choice of its quality** among the items it offers.
-- Quality versions only come from the DLC's own sources (Concept Reliquaries, Hallowed Shrines, Compulsions, trials), never from quality chests or printers.
+Values are Uncommon / Rare / Epic / Legendary.
 
-If Quality adds Hallowed Concepts support itself, this part will be removed from MoreQuality in favour of the official version.
+### How it works
+
+- **Hallowed items** get quality variants with stronger effects and new twists.
+- **Hexes** get quality variants that are *worse*. The payoff: every quality Hex drained by a Hallowed Shrine's Hand of Life **guarantees a choice of its quality** among the items it offers. The best tiers go to the best groups first, one per group, so you can actually take them.
+- Quality versions only come from the DLC's own sources (Concept Reliquaries, the Hand of Death, Hallowed Shrines, Compulsions, trials), through Quality's normal quality chance. Never from quality chests or printers.
+
+### Hallowed items
+| Item | Quality effect |
+|---|---|
+| Corpse Lily | Enemies that die inside the cloud add 0.5 / 0.75 / 1 / 1.5% Teleporter charge. Legendary: they also burst, spreading Blight within 8m |
+| Dream Crucible | When it saves an item, 15 / 25 / 35 / 50% chance it isn't used up (or put on cooldown) itself. Legendary: restores itself 3 minutes after being consumed |
+| Earthbound Vessel | Each unused jump also grants +4% movement speed, then attack speed (Rare), damage (Epic), crit and regeneration (Legendary) |
+| Infernal Mark | Brands after 8 / 7 / 6 / 4 hits, for 1 / 2 / 3 / 5s longer. **Infernal Fervor**: +3 / 5 / 7 / 10% damage and attack speed per enemy you have branded. Epic+: 5 branded at once are all executed (not bosses). Legendary: branded enemies take double damage from their allies |
+| Nightmare Demon | Demons are x1.25 / 1.5 / 2 / 3 bigger and explode for 750 / 900 / 1200 / 1800%. If the host dies first, 25 / 40 / 60 / 90% chance the demon jumps to a nearby enemy, keeping its charge |
+| Ritual Helmet | Skulls stun the enemies they hit for 0.5 / 0.8 / 1.2 / 2s, multiplied by how far above sprint speed you are (up to 6s) |
+| Sanguine Chalice | 15 / 20 / 25 / 35% bleed chance; bleed heals 0.6 / 0.75 / 0.9 / 1.2% max health per tick. Legendary: at full health, the healing becomes barrier |
+| Stained Scimitar | Blades are x1.5 / 2 / 3 / 5 bigger and deal x1.5 / 2 / 3 / 5 damage. Legendary: blade hits have a 5% chance to execute (not bosses) |
+| Totem of Avarice | Recharges in 9 / 8 / 6.5 / 5s; gilded enemies that die pay 20 / 40 / 70 / 120% of their gold on top |
+| Vengeful Spirit | The spirit is x1.5 / 2 / 3 / 5 bigger and explodes when it dies: 400 / 700 / 1100 / 1800% damage to enemies, heals allies 10 / 15 / 25 / 40% in 12 / 15 / 20 / 30m. Epic / Legendary: it comes back after 6 / 3 minutes and its vengeance stacks up until the stage ends |
+| Vile Censer | Enemies hit by the tendrils are linked for 1s and share 10 / 20 / 35 / 50% of the damage any of them takes. Legendary: when a linked enemy dies, each other has a 15% chance to be executed (not bosses) |
+
+### Hexes
+A quality Hex is worse than a normal one. Cleansing it guarantees a choice of its quality.
+
+| Hex | Quality malus |
+|---|---|
+| Hex of Acceleration | Every 3s, acceleration swings between -40% and -55 / 65 / 75 / 90% |
+| Hex of Blindness | Vision limited to 65 / 40 / 20 / 1m |
+| Hex of Famine | Healing reduced by 45 / 50 / 60 / 99% |
+| Hex of Greed | Shares an item every 13 / 11 / 9 / 6s. Legendary: with 5 enemies |
+| Hex of Haunting | Poltergeists deal +25 / 50 / 100 / 200% damage, with a 25 / 50 / 75 / 100% chance of a random boon. Legendary: immune for 5s when they appear |
+| Hex of Leaping | Each jump costs 30 / 35 / 45% of your jump height. Legendary: you can't jump at all |
+| Hex of Loss | 15 / 25 / 35 / 50% of your items disabled |
+| Hex of Mimicry | Mimics gain +20 / 40 / 70 / 100% damage and movement speed. Legendary: immune for 5s when they appear |
+| Hex of Misfortune | 60 / 70 / 80 / 100% chance of a debuff. Epic: 2 at a time. Legendary: 4 |
+| Hex of Ossification | Enemies get 125 / 150 / 200 / 300% barrier. Epic+: also fully healed. Legendary: an elite's death passes its elite powers to them for 20s |
+| Hex of Pain | Max health reduced by 35 / 40 / 50 / 80% |
+| Hex of Patience | Outside the charging Teleporter: an extra 0.5 / 0.75 / 1 / 1.5% max health per second, growing over time. Epic+: a random debuff every 3s. Legendary: 10% chance every 3s to be executed |
+| Hex of Rain | Difficulty +30 / 35 / 45 / 100% |
+| Hex of Strife | 10 / 25 / 50% chance of one more Mountain effect. Legendary: always two more (3 in total) |
+
+Hex of Rain, Strife and Patience affect the whole team, so the best quality on the team counts.
+
+Not covered: N'tormat Pages, the DLC's boss items and equipment, and the Seed of Insight.
 
 ## Notes
 

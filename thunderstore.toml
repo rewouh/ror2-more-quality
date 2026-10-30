@@ -5,7 +5,7 @@ schemaVersion = "0.0.1"
 namespace = "Rewouh"
 name = "MoreQuality"
 # The real version comes from the git tag (see .github/workflows/publish.yml) and must match Plugin.cs.
-versionNumber = "0.2.0"
+versionNumber = "0.2.1"
 description = "Adds Quality variants with unique effects to Starstorm2's items and equipment."
 websiteUrl = "https://github.com/rewouh/ror2-more-quality"
 containsNsfwContent = false
