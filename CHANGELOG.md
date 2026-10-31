@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.4
+
+- Fixed: from the start of every run, almost every spawned enemy had the purple Hex-Empowered buff (+20% damage and movement speed), even without any items. It is now only given to Mimics from a quality Hex of Mimicry.
+
 ## 0.2.3
 
 - Short description now mentions Hallowed Concepts.

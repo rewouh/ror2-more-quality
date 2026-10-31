@@ -189,7 +189,8 @@ namespace MoreQuality.Hallowed
     internal static class HexOfMimicry
     {
         private static readonly T4 Bonus = new T4(20f, 40f, 70f, 100f);
-        private static QualityTier spawning;
+        // Must start at None: QualityTier's default value (0) is Uncommon, which empowered every summon.
+        private static QualityTier spawning = QualityTier.None;
 
         internal static void Init()
         {
