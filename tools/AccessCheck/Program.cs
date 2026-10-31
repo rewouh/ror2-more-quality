@@ -31,24 +31,34 @@ internal static class Program
 
         var module = ModuleDefinition.ReadModule(args[0], new ReaderParameters { AssemblyResolver = resolver });
         var problems = new SortedSet<string>();
-        foreach (var reference in module.GetMemberReferences())
+        // Walk every instruction, so protected members can be checked against the type using them.
+        foreach (var type in AllTypes(module))
         {
-            if (reference.DeclaringType == null || reference.DeclaringType.Scope == module) continue;
-            IMemberDefinition target;
-            try
+            foreach (var method in type.Methods.Where(m => m.HasBody))
             {
-                target = reference is FieldReference field ? field.Resolve() : (IMemberDefinition)((MethodReference)reference).Resolve();
+                foreach (var instruction in method.Body.Instructions)
+                {
+                    if (!(instruction.Operand is MemberReference reference) || reference is TypeReference) continue;
+                    if (reference.DeclaringType == null || reference.DeclaringType.Scope == module) continue;
+                    IMemberDefinition target;
+                    try
+                    {
+                        if (reference is FieldReference field) target = field.Resolve();
+                        else if (reference is MethodReference called) target = called.Resolve();
+                        else continue;
+                    }
+                    catch (AssemblyResolutionException)
+                    {
+                        continue;   // e.g. framework facades: not game code
+                    }
+                    if (target == null)
+                    {
+                        problems.Add("missing:    " + reference.FullName);
+                        continue;
+                    }
+                    if (!Accessible(target, type)) problems.Add("not public: " + reference.FullName + "  (from " + type.FullName + ")");
+                }
             }
-            catch (AssemblyResolutionException)
-            {
-                continue;   // e.g. framework facades: not game code
-            }
-            if (target == null)
-            {
-                problems.Add("missing:    " + reference.FullName);
-                continue;
-            }
-            if (!Accessible(target)) problems.Add("not public: " + reference.FullName);
         }
         foreach (var type in module.GetTypeReferences())
         {
@@ -63,17 +73,44 @@ internal static class Program
         return problems.Count == 0 ? 0 : 1;
     }
 
-    // Protected members count as accessible: our Harmony patches and subclasses may use them legitimately
-    // only through reflection, but a protected access from a subclass is still valid IL.
-    private static bool Accessible(IMemberDefinition member)
+    private static IEnumerable<TypeDefinition> AllTypes(ModuleDefinition module)
+    {
+        var stack = new Stack<TypeDefinition>(module.Types);
+        while (stack.Count > 0)
+        {
+            var type = stack.Pop();
+            yield return type;
+            foreach (var nested in type.NestedTypes) stack.Push(nested);
+        }
+    }
+
+    // Protected members only count when the caller (or a type enclosing it) derives from their declaring type:
+    // our Harmony patches are not subclasses, so a protected getter used there throws MethodAccessException.
+    private static bool Accessible(IMemberDefinition member, TypeDefinition caller)
     {
         if (!TypeAccessible(member.DeclaringType)) return false;
+        bool isPublic, isFamily;
         switch (member)
         {
-            case FieldDefinition f: return f.IsPublic || f.IsFamily || f.IsFamilyOrAssembly;
-            case MethodDefinition m: return m.IsPublic || m.IsFamily || m.IsFamilyOrAssembly;
+            case FieldDefinition f: isPublic = f.IsPublic; isFamily = f.IsFamily || f.IsFamilyOrAssembly; break;
+            case MethodDefinition m: isPublic = m.IsPublic; isFamily = m.IsFamily || m.IsFamilyOrAssembly; break;
             default: return true;
         }
+        return isPublic || (isFamily && DerivesFrom(caller, member.DeclaringType));
+    }
+
+    private static bool DerivesFrom(TypeDefinition caller, TypeDefinition baseType)
+    {
+        for (var outer = caller; outer != null; outer = outer.DeclaringType)
+        {
+            for (var t = outer; t != null; )
+            {
+                if (t.FullName == baseType.FullName) return true;
+                try { t = t.BaseType?.Resolve(); }
+                catch (AssemblyResolutionException) { break; }
+            }
+        }
+        return false;
     }
 
     private static bool TypeAccessible(TypeDefinition type)

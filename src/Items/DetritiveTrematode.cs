@@ -10,8 +10,8 @@ namespace MoreQuality.Items
     // An infested enemy that dies passes the infestation on, whatever the health of its neighbours.
     internal static class DetritiveTrematode
     {
-        private static readonly T4 Targets = new T4(1f, 2f, 3f, 5f);
-        private static readonly T4 Range = new T4(15f, 15f, 20f, 25f);
+        private static readonly T4 Targets = new T4(1f, 2f, 5f, 10f);
+        private static readonly T4 Range = new T4(12f, 15f, 22f, 30f);
 
         internal static void Init()
         {
@@ -28,7 +28,7 @@ namespace MoreQuality.Items
 
             var dot = (DotController.DotIndex)AccessTools.Field(typeof(SS2.Items.DetritiveTrematode), "_trematodeDotIndex").GetValue(null);
             var stack = attacker.inventory.GetItemCountEffective(SS2Content.Items.DetritiveTrematode);
-            var targets = Enemies.Near(victim.corePosition, Q.AtHighest(counts, Range), attacker.teamComponent.teamIndex, victim.healthComponent)
+            var targets = Enemies.Near(victim.corePosition, Q.Stack(counts, Range), attacker.teamComponent.teamIndex, victim.healthComponent)
                 .Where(h => !h.body.HasBuff(SS2Content.Buffs.BuffTrematodes))
                 .Take((int)Q.Sum(counts, Targets));
             foreach (var target in targets)

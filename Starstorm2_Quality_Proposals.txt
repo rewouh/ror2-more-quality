@@ -1,7 +1,7 @@
-MOREQUALITY: DESIGN DOCUMENT (v6)
+MOREQUALITY: DESIGN DOCUMENT (v8)
 =================================
 Mod versions: Starstorm2 0.6.46, Quality 0.8.5, Risk of Rain 2 with Hallowed Concepts
-Mod release:  0.1.0 (Thunderstore: Rewouh-MoreQuality), beta
+Mod release:  0.3.0 (Thunderstore: Rewouh-MoreQuality), beta
 
 The mod adds Quality tiers to items Quality doesn't cover itself, in two independent parts:
 
@@ -20,9 +20,21 @@ HOW TO READ THIS
 A quality copy of an item always also works as a normal copy, so every line below is the
 EXTRA a quality tier adds. Values are Uncommon / Rare / Epic / Legendary.
 
+RULES
+  - Every tier has the SAME effects; only the values change. No effect is reserved for a tier.
+  - Values climb steeply, roughly x1 / x2 / x5 / x10 of the Uncommon bonus (adapted per
+    item), so Epic is strong and Legendary is a bit overpowered on purpose.
+  - Quality values stack. "(+X per stack)" means each extra copy of that tier adds X. Values
+    without it follow the general rule: the best copy gives its full value and every other
+    quality copy adds half of its own tier's value (multipliers: half of the part above x1).
+    Lower-is-better values (cooldowns, hits needed, thresholds) use the best copy only.
+  - Effects use MoreQuality's own visuals (particles and small models built in code; only the
+    base glow, smoke, spark, blood and surface textures come from the game). See VISUALS at
+    the end of Part 1.
+
 When quality changes a number the item already has, the value shown is the TOTAL (base +
-quality), as the in-game descriptions show it. "(+X per stack)" is per extra copy of that
-same quality tier. Equipment has no stacks: only the tier of the one you hold counts.
+quality), as the in-game descriptions show it. Equipment has no stacks: only the tier of
+the one you hold counts.
 
 
 
@@ -43,29 +55,24 @@ ARMED BACKPACK
     Uncommon   x6 size,    600% base damage,  4m explosion
     Rare       x10.5 size, 900% base damage,  7m explosion
     Epic       x18 size,   1400% base damage, 11m explosion
-    Legendary  x36 size,   2400% base damage, 20m explosion, flies slower
+    Legendary  x36 size,   2400% base damage, 20m explosion, flies slower (it's huge)
 
 BROKEN BLOOD TESTER
   Base: after gaining $25, heal 25 + 8% max health.
-  Quality: each heal grants "Blood Rush" for 4 / 5 / 6 / 8s (+1s per stack):
-    Uncommon   +20% movement speed
-    Rare       +30% movement speed, +20% attack speed
-    Epic       +40% movement speed, +30% attack speed, +20% damage
-    Legendary  +50% movement speed, +40% attack speed, +30% damage, +30 armor
+  Quality: each heal grants "Blood Rush" for 3 / 4 / 6 / 10s (+1s per extra quality copy):
+  +15 / 30 / 60 / 120% movement speed, +10 / 20 / 50 / 100% attack speed,
+  +5 / 10 / 25 / 50% damage and +5 / 10 / 25 / 50 armor.
 
 COFFEE BAG
   Base: 10% on hit to drop a bean: +8% attack and movement speed for 6s, up to 5 per stack.
-  Quality: beans drop more often, and "Espresso": grabbing a bean while holding at least
-  5 beans cuts all skill cooldowns.
-    Uncommon   12% drop chance; Espresso -0.5s (+0.5s per stack)
-    Rare       14%; -1s (+1s per stack)
-    Epic       17%; -1.5s (+1.5s per stack)
-    Legendary  22%; -2.5s (+2.5s per stack); loose beans within 40m fly to you
+  Quality: beans drop more often (12 / 14 / 20 / 30%); loose beans within 8 / 15 / 35 / 70m
+  fly to you; and "Espresso": grabbing a bean while holding at least 5 beans cuts all skill
+  cooldowns by 0.5s (+0.5s) / 1s (+1s) / 2.5s (+2.5s) / 5s (+5s).
 
 DETRITIVE TREMATODE
   Base: enemies under 25% health are infested for 100% base damage/s.
   Quality: an infested enemy that dies spreads the infestation, at any health, to
-    1 (+1) / 2 (+2) / 3 (+3) / 5 (+5) enemies within 15 / 15 / 20 / 25m.
+    1 (+1) / 2 (+2) / 5 (+5) / 10 (+10) enemies within 12 / 15 / 22 / 30m.
 
 EMPTY DIARY
   Base: on entering a stage, gain 3 levels, then the item is consumed.
@@ -75,46 +82,58 @@ EMPTY DIARY
 
 FORK
   Base: +8% (+8% per stack) base damage.
-  Quality: 24% (+24%) / 36% (+36%) / 52% (+52%) / 72% (+72%) base damage.
+  Quality: 20% (+20%) / 32% (+32%) / 68% (+68%) / 128% (+128%) base damage.
+  "Pitchfork": every 6 / 5 / 3 / 2 hits you land on the same enemy pin it in place for
+  0.5 / 0.8 / 1.5 / 3s; pinned enemies take +10 / 20 / 50 / 100% damage from everyone.
+  Pinned enemies show a ring of pins at their feet.
 
 GUARDING AMULET
   Base: take 30% (+30% per stack) less damage from behind.
   Quality: hits from behind also grant barrier equal to 10% (+10%) / 20% (+20%) /
-  35% (+35%) / 50% (+50%) of the hit. Legendary also stuns the attacker for 1s.
+  50% (+50%) / 100% (+100%) of the hit, and stun the attacker for 0.5 / 1 / 2 / 4s.
 
 MALICE
   Base: attacks deal 25% TOTAL damage to 1 (+1 per stack) extra enemy within 12m.
   Quality: when the splash runs out of targets, the last enemy hit can pass it on, each
-  hop rolling again: 15% (+15%) / 25% (+25%) / 40% (+40%) / 60% (+60%) chance, up to
-  3 / 5 / 8 / 12 extra hops. Chance capped at 90%.
+  hop rolling again: 10% (+10%) / 20% (+20%) / 50% (+50%) / 90% (+90%) chance, up to
+  2 / 4 / 10 / 20 extra hops. Chance capped at 90%.
 
 MOLTEN COIN
   Base: 6% chance on hit to ignite for 200% TOTAL damage and earn $1.
-  Quality: 8 / 10 / 13 / 18% ignite chance; killing a burning enemy earns
-  $2 (+$2) / $4 (+$4) / $6 (+$6) / $10 (+$10).
+  Quality: 8 / 10 / 16 / 26% ignite chance.
+  "Pay to burn": a burning enemy that dies drops a flaming molten coin (our own model) worth
+  $2 (+$2) / $4 (+$4) / $10 (+$10) / $20 (+$20) (scales over time). Picking it up makes you
+  "Molten" for 3 / 4 / 6 / 10s: a ring of fire around you sets enemies within
+  5 / 7 / 11 / 16m on fire every 0.5s (burn strength x0.5 / 1 / 2.5 / 5), with a burst of
+  flames on each one.
 
 NEEDLES
   Base: +5% crit chance; crits have a 20% chance to needle for 3 x 10% TOTAL damage.
-  Quality: 30 / 40 / 55 / 75% needle chance, 4 / 5 / 6 / 8 needles. Legendary needles bleed.
+  Quality: 25 / 30 / 45 / 70% needle chance, 4 / 5 / 8 / 13 needles, and a
+  15 / 30 / 75 / 100% chance the needles make the target bleed.
+  "Acupuncture": a needled enemy becomes a Voodoo doll for good (purple swirl). Damage dealt
+  to a voodoo doll is also dealt, at 5% (+5%) / 10% (+10%) / 25% (+25%) / 50% (+50%), to
+  every other voodoo doll (the copies can't trigger further copies).
 
 UNIVERSAL CHARGER
   Base: every 18s (-10% per stack), refresh the cooldown of your next non-primary skill.
-  Quality: every 15.7 / 13.8 / 12.4 / 11.3s. Legendary refreshes ALL non-primary skills.
+  Quality: every 16.4 / 15 / 12 / 9s, with a 10 / 20 / 50 / 100% chance to refresh all
+  non-primary skills at once.
+  "Overcharge": using the refreshed skill again makes you "Overcharged" for 2.5s (crackling
+  sparks): +20% (+20%) / +40% (+40%) / +100% (+100%) / +200% (+200%) damage.
 
 URANIUM HORSESHOE
   Base: +10% (+10% per stack) movement speed and jump height.
-  Quality: 30% (+30%) / 45% (+45%) / 65% (+65%) / 90% (+90%).
-  Epic and Legendary: immune to fall damage. Legendary: landing from a fall stomps for up
-  to 600% base damage in 10m (more the higher you fell) and stuns.
+  Quality: 25% (+15%) / 40% (+30%) / 85% (+75%) / 160% (+150%); 25 / 50 / 80 / 100% less
+  fall damage; landing from a fall stomps (green shockwave) for up to
+  150 / 300 / 750 / 1500% base damage in 10m (a quarter of that at a short drop) and stuns.
 
 X-4 STIMULANT
   Base: secondary cooldown -10%; using your secondary gives regen for 3s.
-  Quality: using your secondary can grant a random "Stim" boost for 5s: +30 armor, +30%
-  movement speed, +25% damage, +20% crit, barrier (10% max health) or +10 regen.
-    Uncommon   25% (+10% per stack) chance
-    Rare       40% (+10% per stack)
-    Epic       60% (+10% per stack)
-    Legendary  2 different boosts, guaranteed
+  Quality: using your secondary has a 20 / 40 / 70 / 100% (+10% per stack) chance to grant
+  a random "Stim" boost for 5s (+30 armor, +30% movement speed, +25% damage, +20% crit,
+  barrier of 10% max health, or +10 regen), with a 10 / 20 / 50 / 100% chance of a second,
+  different one.
 
 
 GREEN ITEMS (8)
@@ -122,81 +141,106 @@ GREEN ITEMS (8)
 
 CRYPTIC SOURCE
   Base: when your sprint ends, burst for 250% base damage in 15m (+3m per stack).
-  Quality: each enemy hit (up to 3) refunds utility cooldown: 0.5s (+0.5s) / 1s (+1s) /
-  1.5s (+1.5s) / 2.5s (+2.5s). Legendary doubles the burst radius.
+  Quality: the burst radius is x1.1 / 1.2 / 1.5 / 2, and each enemy hit (up to 3) refunds
+  utility cooldown: 0.5s (+0.5s) / 1s (+1s) / 2.5s (+2.5s) / 5s (+5s).
 
 FIELD ACCELERATOR
   Base: after the boss dies, Teleporter radius +20%, kills add +1% charge.
-  Quality: 1.5 / 2 / 3 / 4% charge per kill; allies in the zone get "Accelerated Field":
-  +5% (+5%) / +10% (+10%) / +15% (+15%) / +25% (+25%) attack speed.
+  Quality: 1.5 / 2 / 3.5 / 6% charge per kill. Inside the charging zone:
+  - allies get "Accelerated Field": +5% (+5%) / +10% (+10%) / +25% (+25%) / +50% (+50%)
+    attack speed;
+  - "Accelerated particles": their projectiles fly +10% (+10%) / +20% (+20%) / +50% (+50%)
+    / +100% (+100%) faster, and enemies are slowed by 10 / 20 / 40 / 70% (blue dust).
+  Holders' bonuses add up across the team; the slow uses the best holder.
 
 HUNTER'S SIGIL
   Base: after standing still 1s, an 8m zone: +30 armor, +30% damage.
-  Quality: 10 / 12 / 15 / 20m zone that also grants +10% (+10%) / +15% (+15%) /
-  +25% (+25%) / +40% (+40%) crit. The best quality on the team decides.
+  Quality: 10 / 12 / 16 / 22m zone that also grants +10% (+10%) / +20% (+20%) /
+  +50% (+50%) / +100% (+100%) crit. The best quality on the team decides.
+  "Hunting grounds": enemies inside the zone are "Hunted" (red ring): +20% (+20%) /
+  +40% (+40%) / +100% (+100%) / +200% (+200%) damage taken from everyone, lasting
+  2 / 3 / 5 / 8s after they leave it.
 
 PROTOTYPE JET BOOTS
   Base: +1 jump that ignites for 400% base damage in 7.5m; 10s recharge.
-  Quality: 8 / 6.5 / 5 / 3s recharge, 500 / 650 / 850 / 1200% base damage.
-  Legendary: +1 extra rocket jump.
+  Quality: 8 / 6 / 4 / 2s recharge with a 10 / 20 / 50 / 90% chance to be ready again
+  right away; 500 / 600 / 900 / 1400% base damage.
+  "Afterburner": each rocket jump leaves a pool of fire (the Molotov's) where you took off,
+  from 100 / 200 / 500 / 1000% base damage.
 
 MAN-O'-WAR
   Base: on kill, discharge for 150% base damage on up to 3 targets.
-  Quality: kills can release a friendly jellyfish (the real Jellyfish model) that drifts
-  to the nearest enemy within 40m and explodes in the Jellyfish's own electric nova.
+  Quality: kills can release a friendly jellyfish: a real Jellyfish summoned on your team
+  (game model and AI, 2.5x faster). When it reaches an enemy, after 12s, or if it's killed,
+  it explodes in the Jellyfish's own electric nova (shocking enemies).
     Uncommon   10% (+10% per stack) chance; 300% base damage, 6m explosion
-    Rare       20% (+15%); 500%, 7m
-    Epic       35% (+20%); 800%, 8m
-    Legendary  50% (+25%); 1200%, 10m
-  Chance capped at 90%. A jellyfish kill is a normal kill, so it can release more.
-  KNOWN BUG: the jellyfish shows as a red orb in flight (the model doesn't render).
+    Rare       20% (+15%); 600%, 7m
+    Epic       40% (+20%); 1500%, 9m
+    Legendary  70% (+25%); 3000%, 12m
+  Chance capped at 90%. The explosion is credited to you, so its kills can release more.
 
 LOW QUALITY SPEAKERS
   Base: chance when hit to stun enemies and destroy projectiles in 12m (+6m per stack).
-  Quality: enemies are launched 10 / 20 / 35 / 55m high and take fall damage on landing
-  (the game's fall damage rule). Legendary doubles it. Bosses take at most 10% of their max
+  Quality: enemies are launched 10 / 20 / 40 / 70m high and take x1 / 1.5 / 2.5 / 4 fall
+  damage on landing (the game's fall damage rule). Bosses take at most 10% of their max
   health per landing; flying enemies take the hit at once.
 
 STRANGE CAN
   Base: chance to intoxicate for 50% damage/s, up to 10 stacks.
-  Quality: intoxicated enemies explode on death, in 2m + 0.5 / 1 / 1.5 / 2.5m per
-  intoxicate stack, applying 1 / 2 / 3 / 5 (+1 per stack) intoxicate to everything hit.
+  Quality: intoxicated enemies explode on death, in 2m + 0.5 / 1 / 2.5 / 5m per
+  intoxicate stack, applying 1 / 2 / 5 / 10 (+1 per stack) intoxicate to everything hit.
 
 WATCH METRONOME
   Base: charge up to +100% sprint speed while not sprinting.
-  Quality: +10% (+10%) / +20% (+20%) / +35% (+35%) / +50% (+50%) damage while charged.
+  Quality: "On the beat": while charged, the metronome ticks every second, with a click and
+  a golden pulse around you. Hits in the 0.2 / 0.3 / 0.45 / 0.6s after each tick ("On the
+  Beat" buff) are critical strikes dealing +20% (+20%) / +40% (+40%) / +100% (+100%) /
+  +200% (+200%) damage, and the first one each beat has a 10 / 20 / 50 / 100% chance to
+  give back one charge.
 
 
 RED ITEMS (8)
 =============
 
 DROID HEAD
-  Base: killing an elite spawns a Security Drone for 20s (+10s per stack).
-  Quality: drones last 30 / 40 / 55 / 80s; 15% (+15%) / 30% (+30%) / 50% (+50%) /
-  75% (+75%) chance of a second drone; each new drone adds 5 / 10 / 15 / 25s to your
-  other drones.
+  Base: killing an elite spawns a Security Drone for 20s (+10s per stack); it inherits
+        the elite type.
+  Quality: drones last 30 / 40 / 70 / 120s; 15% (+15%) / 30% (+30%) / 75% (+75%) /
+  100% chance of a second drone; each new drone adds 5 / 10 / 25 / 50s to your other drones.
+  "Self-destruct": when a drone expires or is destroyed, it explodes (blue shockwave) for
+  300 / 600 / 1500 / 3000% of your base damage within 10 / 12 / 16 / 22m.
 
 ERRATIC GADGET
   Base: your lightning strikes twice; 10% chance on hit for 300% TOTAL chain lightning.
-  Quality: 15 / 20 / 30 / 45% chain chance; each strike has 5 / 10 / 20 / 35% (+5% per
-  stack) chance to also hit a random enemy anywhere on the stage.
+  Quality: 15 / 20 / 35 / 60% chain chance; each strike has 5 / 10 / 25 / 50% (+5% per
+  stack) chance to also hit a random enemy anywhere on the stage, and a
+  0.25 / 0.5 / 1.25 / 2.5% chance to strike an unopened chest (one that costs gold)
+  anywhere on the stage, opening it for free.
 
 GALVANIC CORE
   Base: 10% (+10% per stack) chance on hit to stun; stunned enemies spread "razed".
-  Quality: 15 / 20 / 30 / 45% stun; razed enemies take +10% (+10%) / +20% (+20%) /
-  +30% (+30%) / +50% (+50%) damage and get 1 / 1 / 2 / 3 random debuffs for 3 / 4 / 5 / 6s.
-  The best quality on the team decides.
+  Quality: 15 / 20 / 35 / 60% stun; razed enemies take +10% (+10%) / +20% (+20%) /
+  +50% (+50%) / +100% (+100%) damage, get 1 / 2 / 3 / 5 random debuffs for 3 / 4 / 6 / 10s,
+  and every second arc lightning to the nearest enemy within 15m for
+  50 / 100 / 250 / 500% base damage. The best quality on the team decides.
 
 GREEN CHOCOLATE
   Base: hits over 20% max health are halved past that; +50% damage, +20% crit for 6s.
-  Quality: triggers at 17 / 15 / 12 / 8%; buff +60 / 75 / 100 / 150% damage,
-  +25 / 30 / 40 / 50% crit.
+  Quality: triggers at 18 / 15 / 10 / 5%; buff +60 / 75 / 125 / 200% damage,
+  +25 / 30 / 45 / 70% crit.
+  "Comfort food": each trigger also drops a chocolate bar (our own model: a brown bar in a
+  green wrapper) 4-8m away in a random direction. Whoever picks it up is cleansed of debuffs, and every ally within
+  10 / 15 / 25 / 40m gets the chocolate buff for 3 / 5 / 8 / 15s.
 
 INSECTICIDE
   Base: poison on hit for 180% (+180% per stack) base damage.
   Quality: each poison tick (4 per second) can kill outright, never bosses:
-  0.25% (+0.25%) / 0.5% (+0.25%) / 1% (+0.5%) / 1.5% (+0.5%). About 17% per 3s poison
-  at Legendary.
+  0.25% (+0.25%) / 0.5% (+0.25%) / 1.25% (+0.5%) / 2.5% (+0.5%).
+  "Pesticide cloud": a poisoned enemy that dies leaves a billowing green toxic cloud (fog,
+  ground stain, bubbles, wisps and a green glow) on the ground,
+  4 / 5 / 7 / 10m wide, for 3 / 4 / 6 / 8s, dealing 100 / 200 / 500 / 1000% base damage per
+  second to enemies inside. It belongs to the killer if they hold a quality Insecticide,
+  otherwise to the best one on the team.
 
 N'KOTA'S HERITAGE
   Base: get 1 (+1 per stack) item on level up.
@@ -204,14 +248,18 @@ N'KOTA'S HERITAGE
 
 PORTABLE REACTOR
   Base: invulnerable with +100% movement speed for the first 80s (+40s) of each stage.
-  Quality: 100 / 120 / 140 / 180s; +20% (+20%) / +40% (+40%) / +70% (+70%) /
-  +100% (+100%) damage while invulnerable. Legendary: chests opened while invulnerable
-  drop 2 copies of their item.
+  Quality: 100 / 120 / 180 / 280s; +20% (+20%) / +40% (+40%) / +100% (+100%) /
+  +200% (+200%) damage while invulnerable.
+  "Meltdown": when the invulnerability ends, the reactor blows up (yellow-green shockwave)
+  within 20 / 25 / 32 / 45m for 1000 / 2000 / 5000 / 10000% base damage plus
+  100 / 200 / 500 / 1000% of all the damage it absorbed.
 
 SWIFT SKATEBOARD
   Base: using a skill gives +20% movement speed for 6s, up to 4 stacks.
-  Quality: up to 5 / 6 / 8 / 10 stacks, each also +4% (+4%) / +6% (+6%) / +9% (+9%) /
-  +12% (+12%) attack speed.
+  Quality: up to 5 / 6 / 9 / 14 stacks, each also +3% (+3%) / +6% (+6%) / +15% (+15%) /
+  +30% (+30%) attack speed.
+  "Grind": at max stacks you leave a burning trail (like a Blazing elite's) dealing
+  100 / 200 / 500 / 1000% base damage per second, x1 / 1.25 / 1.6 / 2.2 as wide.
 
 
 BOSS ITEM (1)
@@ -219,7 +267,7 @@ BOSS ITEM (1)
 
 HAUNTED LAMP
   Base: every 5 primary uses, fire a haunted projectile for 200% (+200%) base damage.
-  Quality: every 4 / 4 / 3 / 2 uses; kills have 15 / 25 / 40 / 60% (+10% per stack)
+  Quality: every 4 / 3 / 2 / 1 uses; kills have 10 / 20 / 50 / 90% (+10% per stack)
   chance to fire another projectile from the victim at the nearest enemy (can chain,
   capped at 90%).
 
@@ -229,31 +277,50 @@ EQUIPMENT (6)
 
 BACK THRUSTER
   Base: for 8s, build up to +200% movement speed in a straight line.
-  Quality: 10 / 12 / 15 / 20s; ramming enemies from 60% of top speed deals
-  300 / 500 / 800 / 1200% base damage. Legendary also stuns.
+  Quality: 10 / 12 / 16 / 24s; ramming enemies from 60% of top speed deals
+  300 / 600 / 1500 / 3000% base damage and stuns for 0.5 / 1 / 2 / 4s.
 
 CLOAKING HEADBAND
   Base: invisible with +40% movement speed for 16s.
-  Quality: your first hit out of cloak is a guaranteed crit with +50 / 100 / 200 / 300%
-  damage. Legendary: every hit in the first second.
+  Quality: your first hit out of cloak, and every hit in the 0.2 / 0.4 / 1 / 2s after it,
+  is a guaranteed crit with +50 / 100 / 250 / 500% damage.
 
 GREATER WARBANNER
   Base: a banner with +50% regen, +20% crit, -50% cooldowns; 1 at a time.
-  Quality: radius +20 / 40 / 60 / 100%; up to 1 / 2 / 2 / 3 banners.
+  Quality: radius +20 / 40 / 100 / 200%; up to 1 / 2 / 3 / 5 banners.
+  "Plant the flag": the banner slams into the ground (golden shockwave), dealing
+  300 / 600 / 1500 / 3000% base damage within 8 / 10 / 14 / 20m and stunning for
+  1 / 1.5 / 2.5 / 4s.
 
 SIMPLE MAGNET
   Base: pull pickups within 150m.
-  Quality: each item it pulls gets one roll ever, 5 / 8 / 12 / 20%, to become the
+  Quality: each item it pulls gets one roll ever, 5 / 10 / 25 / 50%, to become the
   magnet's quality. (Starstorm2 never reads its "treasure" setting, so that wasn't scaled.)
 
 M.I.D.A.S.
   Base: sacrifice 50% of current health for gold.
-  Quality: costs 40 / 35 / 25 / 15%; gold x1.25 / 1.5 / 2 / 3.
+  Quality: costs 45 / 40 / 30 / 15%; gold x1.25 / 1.5 / 2.25 / 3.5.
+  "Gold rush": for 4 / 6 / 10 / 15s after (golden glitter), every kill pays
+  10 / 20 / 50 / 100% of the health you sacrificed as gold.
 
 WHITE FLAG
   Base: a flag that disables skills within 25m for 15s.
-  Quality: 30 / 35 / 40 / 50m; allies in range regenerate 2 / 4 / 7 / 10% max health per
-  second. Legendary: lasts 25s and only silences enemies.
+  Quality: 30 / 35 / 50 / 75m; lasts 16 / 18 / 22 / 30s; only silences enemies; allies in
+  range regenerate 2 / 4 / 10 / 20% max health per second.
+
+
+VISUALS
+=======
+Built in code by MoreQuality (src/Visuals.cs, src/Fx.cs):
+  - One-shot effects, seen by everyone: metronome tick pulse, ignite flames, coin sparkles,
+    chocolate crumbs, blood wave, toxic cloud, and coloured shockwaves for Meltdown,
+    Self-destruct, Plant the flag, the Horseshoe stomp and the Vengeful Spirit explosion.
+  - Pickup models: the molten coin (glowing disc with flames and embers) and the chocolate
+    bar (brown bar, green wrapper, sparkles); both float and spin.
+  - Status marks drawn on every game while the buff lasts: Molten fire ring, Pinned, Hunted,
+    Voodoo, Slowed, Overcharged, Gold Rush, Blood Offering and Wounded.
+Still borrowed from the game: the Jellyfish (model and nova), the Molotov fire pool, the
+Blazing fire trail, lightning orbs.
 
 
 Not covered: Starstorm2's 0.7 beta items (Ice Tool, Neurotoxin Gland, Sticky Overloader,
@@ -328,73 +395,79 @@ HALLOWED ITEMS (11)
 
 CORPSE LILY
   Base: during the Teleporter event, an expanding cloud inflicts stacking Blight.
-  Quality: enemies that die inside the cloud feed the Teleporter: +0.5 / 0.75 / 1 / 1.5%
-  charge each. Legendary: they also burst, inflicting Blight on enemies within 8m.
+  Quality: enemies that die inside the cloud feed the Teleporter (+0.5 / 1 / 2.5 / 5%
+  charge each) and burst, inflicting Blight on enemies within 3 / 5 / 8 / 12m.
   (The best quality on the team decides.)
 
 DREAM CRUCIBLE
   Base: when another item goes on cooldown or is consumed, 10% (+10% per stack) chance
         for the Crucible to take it instead. Regenerates each stage.
-  Quality: when it saves an item, 15 / 25 / 35 / 50% chance it isn't used up (or put on
-  cooldown) itself. Legendary: once consumed, it also restores itself after 3 minutes.
+  Quality: when it saves an item, 10 / 20 / 50 / 90% chance it isn't used up (or put on
+  cooldown) itself. Once consumed, it restores itself after 10 / 7 / 4 / 2 minutes.
 
 EARTHBOUND VESSEL
   Base: 3 (+2 per stack) extra jumps that recharge on the ground; +5 armor per unused jump.
-  Quality: each unused jump also grants:
-    Uncommon   +4% movement speed
-    Rare       + 4% attack speed
-    Epic       + 4% damage
-    Legendary  + 2% crit and +1 regeneration
-  Each extra quality copy adds 50% to these.
+  Quality: each unused jump also grants +2 / 4 / 8 / 15% movement speed, attack speed and
+  damage, +1 / 2 / 4 / 8% crit and +0.25 / 0.5 / 1.25 / 2.5 regeneration. Each extra quality
+  copy adds 50% to these.
+  "Grounded": while you stand on the ground, each unused jump slows enemies within
+  8 / 10 / 14 / 20m by 4 / 8 / 15 / 25% (capped at 90%).
 
 INFERNAL MARK
   Base: after hitting an enemy with skills 10 times, stun and soul-brand it for 5s (+5s).
-  Quality: brands after 8 / 7 / 6 / 4 hits, lasting +1 / 2 / 3 / 5s. You gain "Infernal
-  Fervor": +3 / 5 / 7 / 10% damage and attack speed for every enemy you have branded.
-  Epic and Legendary: with 5 enemies branded at once, they are all executed (not bosses).
-  Legendary: branded enemies take double damage from their allies.
+  Quality: brands after 8 / 7 / 5 / 3 hits, lasting +1 / 2 / 4 / 8s. You gain "Infernal
+  Fervor": +2 / 4 / 10 / 20% damage and attack speed for every enemy you have branded.
+  With 8 / 7 / 5 / 4 enemies branded at once, they are all executed (not bosses).
+  Branded enemies take +25 / 50 / 125 / 250% damage from their allies.
 
 NIGHTMARE DEMON
   Base: 20% chance on hit to haunt an enemy with a demon; damaging the enemy charges it,
         and hitting the charged demon explodes it for 600% (+600% per stack).
-  Quality: demons are x1.25 / 1.5 / 2 / 3 bigger and explode for 750 / 900 / 1200 / 1800%
-  (x1.25 / 1.5 / 2 / 3). When a haunted enemy dies before its demon exploded, 25 / 40 / 60 /
-  90% chance the demon jumps to the nearest enemy within 30m, keeping its charge.
+  Quality: demons are x1.25 / 1.5 / 2 / 3 bigger and explode for 750 / 900 / 1500 / 2400%
+  (x1.25 / 1.5 / 2.5 / 4). When a haunted enemy dies before its demon exploded,
+  25 / 40 / 70 / 100% chance the demon jumps to the nearest enemy within 30m, keeping its
+  charge.
   KNOWN BUG: the demon sometimes falls to the ground and dies instead of jumping.
 
 RITUAL HELMET
   Base: sprinting builds charges; at full charge a skull hits enemies, scaling with speed.
-  Quality: skulls stun the enemies they hit for 0.5 / 0.8 / 1.2 / 2s, multiplied by how far
+  Quality: skulls stun the enemies they hit for 0.4 / 0.8 / 2 / 4s, multiplied by how far
   above sprint speed you are (up to 6s).
 
 SANGUINE CHALICE
   Base: 10% chance to bleed; your bleed heals you 0.5% (+0.5%) max health per tick.
-  Quality: +5 / 10 / 15 / 25% bleed chance; each bleed tick heals 0.1 / 0.25 / 0.4 / 0.7%
-  more. Legendary: at full health, the healing becomes barrier.
+  Quality: +5 / 10 / 25 / 50% bleed chance; each bleed tick heals 0.1 / 0.2 / 0.5 / 1%
+  more.
+  "Blood offering": bleed healing you get at full health is stored as blood ("Blood
+  Offering" buff, with drops of blood circling you), up to 50 / 75 / 125 / 200% of your max
+  health. Starting to sprint releases it as a blood wave (our own effect: a crimson flash, a
+  wave of blood skimming the ground, falling streaks, splats and mist) within 12 / 15 / 20 / 28m, dealing 200 / 400 / 1000 / 2000% of the
+  stored blood as damage and making enemies bleed.
 
 STAINED SCIMITAR
   Base: healing spawns orbiting ghost blades (100% damage + bleed); Secondary fires them.
-  Quality: blades are x1.5 / 2 / 3 / 5 bigger and deal x1.5 / 2 / 3 / 5 damage.
-  Legendary: blade hits have a 5% chance to execute (not bosses).
+  Quality: blades are x1.5 / 2 / 3 / 5 bigger and deal x1.5 / 2 / 3.5 / 6 damage. Blade hits
+  have a 1 / 2 / 5 / 10% chance to execute (not bosses).
 
 TOTEM OF AVARICE
   Base: big hits turn nearby enemies to gold (they drop extra treasure); 10s recharge.
-  Quality: recharges in 9 / 8 / 6.5 / 5s; gilded enemies that die pay 20 / 40 / 70 / 120%
+  Quality: recharges in 9 / 8 / 6 / 4s; gilded enemies that die pay 20 / 40 / 100 / 200%
   of their gold reward on top.
 
 VENGEFUL SPIRIT
   Base: a protective spirit absorbs 50% of damage taken; if it dies, you go into a rage.
   Quality: the base effect is unchanged; the spirit is x1.5 / 2 / 3 / 5 bigger, and when
-  it dies it explodes in 12 / 15 / 20 / 30m: enemies take 400 / 700 / 1100 / 1800% base
-  damage and allies heal 10 / 15 / 25 / 40% of their max health.
-  Epic and Legendary: the spirit comes back after 6 / 3 minutes, and the vengeance from the
-  one that died stays until the end of the stage, so it builds up with every death.
+  it dies it explodes (teal shockwave) in 12 / 15 / 20 / 30m: enemies take
+  400 / 800 / 2000 / 4000% base damage and allies heal 10 / 15 / 30 / 60% of their max
+  health. The spirit comes back after 12 / 9 / 5 / 2.5 minutes (shorter with extra quality
+  spirits), and the vengeance from the one that died stays until the end of the stage, so
+  it builds up with every death.
 
 VILE CENSER
   Base: hitting a stunned enemy releases tendrils that chain between enemies.
   Quality: enemies hit by the tendrils are linked for 1s: damage dealt to one is shared
-  with the others at 10 / 20 / 35 / 50%. Legendary: when a linked enemy dies, each other
-  one has a 15% chance to be executed (not bosses).
+  with the others at 10 / 20 / 40 / 75%. When a linked enemy dies, each other one has a
+  3 / 6 / 15 / 30% chance to be executed (not bosses).
 
 
 HEXES (14)
@@ -402,57 +475,61 @@ HEXES (14)
 A quality Hex is stronger (worse). Its payoff is the cleansing guarantee above.
 
 HEX OF ACCELERATION   Base: ground is slippery; acceleration -40% (+30% per stack).
-  Quality: every 3 seconds the penalty swings between -40% and -55 / 65 / 75 / 90%.
+  Quality: every 3 seconds the penalty swings between -40% and -50 / 60 / 75 / 95%.
 
 HEX OF BLINDNESS      Base: vision limited to 100m (-50% per stack).
-  Quality: 65 / 40 / 20 / 1m.
+  Quality: 65 / 40 / 20 / 1m. Enemies beyond your vision deal +15 / 30 / 75 / 150% damage
+  to you.
 
 HEX OF FAMINE         Base: all healing -40% (+40% per stack).
-  Quality: -45 / 50 / 60 / 99%.
+  Quality: -45 / 50 / 65 / 95%. The healing you lose goes to the nearest enemy within 40m:
+  it heals the same share of its own max health, x0.3 / 0.6 / 1.5 / 3.
 
 HEX OF GREED          Base: every 15s, share 1 (+1) random item of yours with 3 enemies.
-  Quality: every 13 / 11 / 9 / 6s. Legendary: shared with 5 enemies.
+  Quality: every 13 / 11 / 8 / 5s, with 3 / 4 / 5 / 8 enemies.
 
 HEX OF HAUNTING       Base: a Poltergeist every 60s (-25% per stack) throws interactables at you.
-  Quality: Poltergeists deal +25 / 50 / 100 / 200% damage and have 25 / 50 / 75 / 100%
-  chance to gain a random boon (armor, attack speed, speed, crit or damage).
-  Legendary: immune for 5s when they appear.
+  Quality: Poltergeists deal +25 / 50 / 125 / 250% damage, have 25 / 50 / 100 / 100%
+  chance to gain a random boon (armor, attack speed, speed, crit or damage), and are immune
+  for 1 / 2 / 4 / 8s when they appear.
   (A Poltergeist dies by itself once it no longer carries an interactable: that's the DLC.)
 
 HEX OF LEAPING        Base: each jump lowers jump height by 25%, recovering over 6s (+6s).
-  Quality: -30 / 35 / 45% per jump. Legendary: you can no longer jump.
+  Quality: -30 / 35 / 50 / 75% per jump, and each jump pushes you sideways in a random
+  direction at 5 / 10 / 25 / 50 m/s.
 
 HEX OF LOSS           Base: every 30s, 10% (+10%) of your items are disabled.
-  Quality: 15 / 25 / 35 / 50%.
+  Quality: 15 / 25 / 40 / 60%.
 
 HEX OF MIMICRY        Base: a Mimic every 60s (-10% per stack).
-  Quality: Mimics gain +20 / 40 / 70 / 100% damage and movement speed.
-  Legendary: immune for 5s when they appear.
+  Quality: Mimics gain +20 / 40 / 100 / 200% damage and movement speed, and are immune for
+  1 / 2 / 4 / 8s when they appear.
 
 HEX OF MISFORTUNE     Base: interactables have a 50% chance to give 1 (+1) random debuff.
-  Quality: 60 / 70 / 80 / 100% chance. Epic: 2 debuffs at a time. Legendary: 4.
+  Quality: 60 / 70 / 85 / 100% chance; each debuff has a 20 / 40 / 100 / 100% chance to
+  bring 1 / 1 / 2 / 4 more.
 
 HEX OF OSSIFICATION   Base: killing an enemy gives enemies within 30m barrier equal to 100%
                       (+100%) of its max health.
-  Quality: 125 / 150 / 200 / 300%. Epic: they are also fully healed. Legendary: also, an
-  elite's death gives its elite powers to them for 20s.
+  Quality: 125 / 150 / 225 / 350%; they are also healed for 20 / 40 / 100 / 100% of their
+  max health, and an elite's death gives its elite powers to them for 4 / 8 / 20 / 40s.
 
 HEX OF PAIN           Base: max health -30% (+30% per stack, hyperbolic).
-  Quality: -35 / 40 / 50 / 80%.
+  Quality: -35 / 40 / 50 / 80%. Hits have a 10 / 20 / 40 / 75% chance to leave a wound
+  ("Wounded", dripping blood) that deals 25 / 50 / 125 / 250% of the hit again over 4s.
 
 HEX OF PATIENCE       Base: outside the Teleporter radius you take 1% max health, growing
                       12.5% (+12.5%) every 10s. Affects allies too.
-  Quality: outside the charging Teleporter you also take 0.5 / 0.75 / 1 / 1.5% max health
-  per second, growing 12.5% every 10s. Epic: a random debuff every 3s outside.
-  Legendary: also a 10% chance every 3s to be executed.
+  Quality: outside the charging Teleporter you also take 0.5 / 1 / 2.5 / 5% max health per
+  second, growing 12.5% every 10s. Every 3s outside: a 20 / 40 / 100 / 100% chance of a
+  random debuff and a 0.5 / 1 / 3 / 10% chance to be executed.
 
 HEX OF RAIN           Base: difficulty +25% (+25% per stack).
   Quality: +30 / 35 / 45 / 100%.
 
 HEX OF STRIFE         Base: the Teleporter gets 1 (+1) Shrine of the Mountain effect, without
                       the extra rewards.
-  Quality: 10 / 25 / 50% chance of one more (rolled once per Teleporter).
-  Legendary: always two more (3 in total).
+  Quality: a 10 / 25 / 60 / 100% chance of 1 / 1 / 2 / 3 more (rolled once per Teleporter).
 
 Team-wide hexes (Rain, Strife, Patience) use the best quality on the team.
 
@@ -475,3 +552,13 @@ CHANGELOG OF THIS DOCUMENT
   v6  second test: Nightmare Demon bigger and stronger, charge now kept on a jump; Vengeful
       Spirit bigger, Epic/Legendary spirits come back and their vengeance builds up; quality
       hexes can now be cleansed (the shrine ignored them); description fixes
+  v7  every tier has the same effects with scaled values; new mechanics for the items that
+      only had bigger numbers (Pitchfork, On the beat, Pay to burn, Comfort food, Grind,
+      Overcharge, Hunting grounds, Afterburner, Acupuncture, Meltdown, Accelerated
+      particles, Galvanic arcs, chest strikes, Self-destruct, Gold rush, Plant the flag,
+      Blood offering, Grounded) and new Blindness, Famine, Pain and Leaping maluses
+  v8  third test: steep scaling (about x1 / x2 / x5 / x10); quality values stack (extra
+      copies add half their tier's value); MoreQuality's own visuals (coin and chocolate
+      models, effects, status marks, metronome tick sound); Insecticide's swarm replaced by
+      toxic clouds; Hunter's Sigil much stronger; Man-o'-War summons a real Jellyfish (fixes
+      the red orb); Hex of Leaping push and Jet Boots fixed (a hook error broke jumping)

@@ -2,7 +2,7 @@
 
 > **Beta, in active development.** Expect balance changes and the occasional bug; reports are very welcome (see Feedback below).
 
-Adds [Quality](https://thunderstore.io/c/riskofrain2/p/Goorakh/Quality/) variants to items Quality doesn't cover. Every Uncommon, Rare, Epic and Legendary version keeps the item's normal effect and gets its own quality bonus, from stronger numbers to brand-new effects.
+Adds [Quality](https://thunderstore.io/c/riskofrain2/p/Goorakh/Quality/) variants to items Quality doesn't cover. Every quality version keeps the item's normal effect and adds new mechanics on top. All four tiers (Uncommon, Rare, Epic, Legendary) have the same effects; the values climb steeply (roughly x1 / x2 / x5 / x10), so Legendary is a bit overpowered on purpose. Extra quality copies stack: each one adds half of its own tier's value.
 
 The mod has two separate parts:
 
@@ -19,57 +19,57 @@ Values are Uncommon / Rare / Epic / Legendary.
 | Item | Quality effect |
 |---|---|
 | Armed Backpack | Huge, exploding missiles: x6 / x10.5 / x18 / x36 size, 4 / 7 / 11 / 20m blast |
-| Broken Blood Tester | Heals grant **Blood Rush**: movement speed, then attack speed, damage and armor at higher tiers |
-| Coffee Bag | More beans (12 / 14 / 17 / 22%). Grabbing a bean with 5+ beans cuts all cooldowns by 0.5 / 1 / 1.5 / 2.5s. Legendary: beans within 40m fly to you |
-| Detritive Trematode | Infestations spread to 1 / 2 / 3 / 5 nearby enemies when the host dies |
+| Broken Blood Tester | Heals grant **Blood Rush**: +15 / 30 / 60 / 120% movement speed, +10 / 20 / 50 / 100% attack speed, +5 / 10 / 25 / 50% damage, +5 / 10 / 25 / 50 armor |
+| Coffee Bag | More beans (12 / 14 / 20 / 30%). Beans within 8 / 15 / 35 / 70m fly to you. Grabbing a bean with 5+ beans cuts all cooldowns by 0.5 / 1 / 2.5 / 5s |
+| Detritive Trematode | Infestations spread to 1 / 2 / 5 / 10 nearby enemies when the host dies |
 | Empty Diary | Also gives a random item of the diary's quality when consumed |
-| Fork | 24 / 36 / 52 / 72% base damage per stack |
-| Guarding Amulet | Hits from behind grant barrier (10 / 20 / 35 / 50% of the hit). Legendary: stuns the attacker |
-| Malice | The splash keeps chaining: 15 / 25 / 40 / 60% chance, up to 3 / 5 / 8 / 12 extra times |
-| Molten Coin | Higher ignite chance; burning kills pay $2 / $4 / $6 / $10 |
-| Needles | 30 / 40 / 55 / 75% chance for 4 / 5 / 6 / 8 needles. Legendary: needles bleed |
-| Universal Charger | Refreshes every 15.7 / 13.8 / 12.4 / 11.3s. Legendary: refreshes all skills at once |
-| Uranium Horseshoe | 30 / 45 / 65 / 90% speed and jump height. Epic+: no fall damage. Legendary: landings stomp enemies |
-| X-4 Stimulant | Your secondary can grant a random **Stim** boost. Legendary: two at once, every time |
+| Fork | 20 / 32 / 68 / 128% base damage per stack. **Pitchfork**: every 6 / 5 / 3 / 2 hits on the same enemy pin it in place for 0.5 / 0.8 / 1.5 / 3s; pinned enemies take +10 / 20 / 50 / 100% damage |
+| Guarding Amulet | Hits from behind grant barrier (10 / 20 / 50 / 100% of the hit) and stun the attacker for 0.5 / 1 / 2 / 4s |
+| Malice | The splash keeps chaining: 10 / 20 / 50 / 90% chance, up to 2 / 4 / 10 / 20 extra times |
+| Molten Coin | Higher ignite chance. **Pay to burn**: burning enemies drop a flaming coin ($2 / $4 / $10 / $20); picking it up makes you **Molten** for 3 / 4 / 6 / 10s, setting enemies within 5 / 7 / 11 / 16m on fire |
+| Needles | 25 / 30 / 45 / 70% chance for 4 / 5 / 8 / 13 needles, 15 / 30 / 75 / 100% chance to bleed. **Acupuncture**: needled enemies become **Voodoo dolls** for good; damage to one is copied to all the others at 5 / 10 / 25 / 50% |
+| Universal Charger | Refreshes every 16.4 / 15 / 12 / 9s, 10 / 20 / 50 / 100% chance to refresh all skills. **Overcharge**: using the refreshed skill gives +20 / 40 / 100 / 200% damage for 2.5s |
+| Uranium Horseshoe | 25 / 40 / 85 / 160% speed and jump height, 25 / 50 / 80 / 100% less fall damage; landings stomp for up to 150 / 300 / 750 / 1500% |
+| X-4 Stimulant | Your secondary has a 20 / 40 / 70 / 100% chance to grant a random **Stim** boost, and 10 / 20 / 50 / 100% chance of a second one |
 
 ### Uncommon
 | Item | Quality effect |
 |---|---|
-| Cryptic Source | Each enemy hit by the burst refunds utility cooldown. Legendary: double radius |
-| Field Accelerator | More charge per kill; allies in the charging zone attack faster (**Accelerated Field**) |
-| Hunter's Sigil | Bigger zone that also grants 10 / 15 / 25 / 40% crit |
-| Jet Boots | Faster recharge, bigger blast. Legendary: two rocket jumps |
-| Man o' War | Kills can release a friendly jellyfish that drifts to an enemy and explodes |
-| Low Quality Speakers | The burst launches enemies 10 / 20 / 35 / 55m high; they take fall damage on landing |
-| Strange Can | Intoxicated enemies explode on death, spreading intoxication |
-| Watch Metronome | Deal 10 / 20 / 35 / 50% more damage while charged |
+| Cryptic Source | Burst x1.1 / 1.2 / 1.5 / 2 bigger; each enemy hit refunds 0.5 / 1 / 2.5 / 5s of utility cooldown |
+| Field Accelerator | More charge per kill. In the charging zone: allies attack +5 / 10 / 25 / 50% faster (**Accelerated Field**) and their projectiles fly +10 / 20 / 50 / 100% faster; enemies are slowed by 10 / 20 / 40 / 70% |
+| Hunter's Sigil | Bigger zone that also grants 10 / 20 / 50 / 100% crit. **Hunting grounds**: enemies in the zone are **Hunted**, taking +20 / 40 / 100 / 200% damage until 2 / 3 / 5 / 8s after leaving it |
+| Jet Boots | Recharges in 8 / 6 / 4 / 2s with a 10 / 20 / 50 / 90% chance to recharge instantly, bigger blast. **Afterburner**: each rocket jump leaves a pool of fire |
+| Man o' War | Kills can release a friendly **Jellyfish** (a real one, on your team) that flies to an enemy and explodes in its electric nova for 300 / 600 / 1500 / 3000% |
+| Low Quality Speakers | The burst launches enemies 10 / 20 / 40 / 70m high; they take x1 / 1.5 / 2.5 / 4 fall damage on landing |
+| Strange Can | Intoxicated enemies explode on death, spreading 1 / 2 / 5 / 10 intoxicate |
+| Watch Metronome | **On the beat**: while charged, it ticks every second (sound and golden pulse); hits in the 0.2 / 0.3 / 0.45 / 0.6s after a tick are crits with +20 / 40 / 100 / 200% damage, and can give a charge back |
 
 ### Legendary
 | Item | Quality effect |
 |---|---|
-| Droid Head | Drones last longer, can spawn in pairs, and extend your other drones |
-| Erratic Gadget | Higher chain chance; strikes can hit a random enemy anywhere on the stage |
-| Galvanic Core | Higher stun chance; razed enemies take more damage and get random debuffs |
-| Green Chocolate | Triggers on smaller hits, and its buff is stronger |
-| Insecticide | Each poison tick can instantly kill (not bosses) |
+| Droid Head | Drones last longer, can spawn in pairs, and extend your other drones. **Self-destruct**: drones explode for 300 / 600 / 1500 / 3000% when they expire or die |
+| Erratic Gadget | Higher chain chance; strikes can hit a random enemy anywhere on the stage, and rarely (0.25 / 0.5 / 1.25 / 2.5%) an unopened chest, opening it for free |
+| Galvanic Core | Higher stun chance; razed enemies take +10 / 20 / 50 / 100% damage, get 1 / 2 / 3 / 5 random debuffs, and arc lightning to nearby enemies every second (50 / 100 / 250 / 500%) |
+| Green Chocolate | Triggers on smaller hits, stronger buff. **Comfort food**: each trigger drops a chocolate bar nearby that cleanses whoever eats it and gives the buff to allies within 10 / 15 / 25 / 40m |
+| Insecticide | Each poison tick can instantly kill (not bosses). **Pesticide cloud**: poisoned enemies that die leave a toxic cloud (4 / 5 / 7 / 10m) dealing 100 / 200 / 500 / 1000% per second |
 | N'kota's Heritage | The items it gives have its quality |
-| Portable Reactor | Lasts longer, more damage while invulnerable. Legendary: chests drop 2 items |
-| Swift Skateboard | More stacks, each also giving attack speed |
+| Portable Reactor | Lasts longer, more damage while invulnerable. **Meltdown**: when it ends, it blows up for 1000 / 2000 / 5000 / 10000% plus 100 / 200 / 500 / 1000% of the damage it absorbed |
+| Swift Skateboard | Up to 5 / 6 / 9 / 14 stacks, each also giving attack speed. **Grind**: at max stacks you leave a burning trail (100 / 200 / 500 / 1000% per second) |
 
 ### Boss
 | Item | Quality effect |
 |---|---|
-| Shackled Lamp | Fires more often; kills can fire again at the nearest enemy |
+| Shackled Lamp | Fires every 4 / 3 / 2 / 1 uses; kills have a 10 / 20 / 50 / 90% chance to fire again at the nearest enemy |
 
 ### Equipment
 | Equipment | Quality effect |
 |---|---|
-| Back Thruster | Lasts longer; ramming enemies at speed deals damage. Legendary: stuns |
-| Cloaking Headband | Your first strike out of cloak is a big guaranteed crit |
-| Greater Warbanner | Bigger banners, and more of them at once |
-| Simple Magnet | Pulled items have a one-time 5 / 8 / 12 / 20% chance to gain the magnet's quality |
-| M.I.D.A.S. | Costs less health, pays more gold |
-| White Flag | Bigger flag that heals allies. Legendary: only silences enemies |
+| Back Thruster | Lasts longer; ramming enemies at speed deals 300 / 600 / 1500 / 3000% and stuns them for 0.5 / 1 / 2 / 4s |
+| Cloaking Headband | Your first strike out of cloak, and every hit in the 0.2 / 0.4 / 1 / 2s after it, is a guaranteed crit with +50 / 100 / 250 / 500% damage |
+| Greater Warbanner | Bigger banners, up to 1 / 2 / 3 / 5 at once. **Plant the flag**: the banner slams down for 300 / 600 / 1500 / 3000% and stuns |
+| Simple Magnet | Pulled items have a one-time 5 / 10 / 25 / 50% chance to gain the magnet's quality |
+| M.I.D.A.S. | Costs less health, pays more gold. **Gold rush**: for 4 / 6 / 10 / 15s, every kill pays 10 / 20 / 50 / 100% of the health you spent as gold |
+| White Flag | Bigger, longer flag that only silences enemies and heals allies 2 / 4 / 10 / 20% per second |
 
 Starstorm 2's beta items (Ice Tool, Neurotoxin Gland, Sticky Overloader, Toy Soldiers) aren't covered.
 
@@ -88,37 +88,37 @@ Values are Uncommon / Rare / Epic / Legendary.
 ### Hallowed items
 | Item | Quality effect |
 |---|---|
-| Corpse Lily | Enemies that die inside the cloud add 0.5 / 0.75 / 1 / 1.5% Teleporter charge. Legendary: they also burst, spreading Blight within 8m |
-| Dream Crucible | When it saves an item, 15 / 25 / 35 / 50% chance it isn't used up (or put on cooldown) itself. Legendary: restores itself 3 minutes after being consumed |
-| Earthbound Vessel | Each unused jump also grants +4% movement speed, then attack speed (Rare), damage (Epic), crit and regeneration (Legendary) |
-| Infernal Mark | Brands after 8 / 7 / 6 / 4 hits, for 1 / 2 / 3 / 5s longer. **Infernal Fervor**: +3 / 5 / 7 / 10% damage and attack speed per enemy you have branded. Epic+: 5 branded at once are all executed (not bosses). Legendary: branded enemies take double damage from their allies |
-| Nightmare Demon | Demons are x1.25 / 1.5 / 2 / 3 bigger and explode for 750 / 900 / 1200 / 1800%. If the host dies first, 25 / 40 / 60 / 90% chance the demon jumps to a nearby enemy, keeping its charge |
-| Ritual Helmet | Skulls stun the enemies they hit for 0.5 / 0.8 / 1.2 / 2s, multiplied by how far above sprint speed you are (up to 6s) |
-| Sanguine Chalice | 15 / 20 / 25 / 35% bleed chance; bleed heals 0.6 / 0.75 / 0.9 / 1.2% max health per tick. Legendary: at full health, the healing becomes barrier |
-| Stained Scimitar | Blades are x1.5 / 2 / 3 / 5 bigger and deal x1.5 / 2 / 3 / 5 damage. Legendary: blade hits have a 5% chance to execute (not bosses) |
-| Totem of Avarice | Recharges in 9 / 8 / 6.5 / 5s; gilded enemies that die pay 20 / 40 / 70 / 120% of their gold on top |
-| Vengeful Spirit | The spirit is x1.5 / 2 / 3 / 5 bigger and explodes when it dies: 400 / 700 / 1100 / 1800% damage to enemies, heals allies 10 / 15 / 25 / 40% in 12 / 15 / 20 / 30m. Epic / Legendary: it comes back after 6 / 3 minutes and its vengeance stacks up until the stage ends |
-| Vile Censer | Enemies hit by the tendrils are linked for 1s and share 10 / 20 / 35 / 50% of the damage any of them takes. Legendary: when a linked enemy dies, each other has a 15% chance to be executed (not bosses) |
+| Corpse Lily | Enemies that die inside the cloud add 0.5 / 1 / 2.5 / 5% Teleporter charge and burst, spreading Blight within 3 / 5 / 8 / 12m |
+| Dream Crucible | When it saves an item, 10 / 20 / 50 / 90% chance it isn't used up (or put on cooldown) itself. Restores itself 10 / 7 / 4 / 2 minutes after being consumed |
+| Earthbound Vessel | Each unused jump grants +2 / 4 / 8 / 15% movement speed, attack speed and damage, plus crit and regeneration. **Grounded**: on the ground, each unused jump slows enemies within 8 / 10 / 14 / 20m by 4 / 8 / 15 / 25% |
+| Infernal Mark | Brands after 8 / 7 / 5 / 3 hits. **Infernal Fervor**: +2 / 4 / 10 / 20% damage and attack speed per enemy you have branded. 8 / 7 / 5 / 4 branded at once are all executed (not bosses). Branded enemies take +25 / 50 / 125 / 250% damage from their allies |
+| Nightmare Demon | Demons are x1.25 / 1.5 / 2 / 3 bigger and explode for 750 / 900 / 1500 / 2400%. If the host dies first, 25 / 40 / 70 / 100% chance the demon jumps to a nearby enemy, keeping its charge |
+| Ritual Helmet | Skulls stun the enemies they hit for 0.4 / 0.8 / 2 / 4s, multiplied by how far above sprint speed you are (up to 6s) |
+| Sanguine Chalice | 15 / 20 / 35 / 60% bleed chance; bleed heals 0.6 / 0.7 / 1 / 1.5% max health per tick. **Blood offering**: healing at full health is stored as blood (up to 50 / 75 / 125 / 200% max health); starting to sprint releases it as a blood wave dealing 200 / 400 / 1000 / 2000% of it |
+| Stained Scimitar | Blades are x1.5 / 2 / 3 / 5 bigger, deal x1.5 / 2 / 3.5 / 6 damage, and have a 1 / 2 / 5 / 10% chance to execute (not bosses) |
+| Totem of Avarice | Recharges in 9 / 8 / 6 / 4s; gilded enemies that die pay 20 / 40 / 100 / 200% of their gold on top |
+| Vengeful Spirit | The spirit is x1.5 / 2 / 3 / 5 bigger and explodes when it dies: 400 / 800 / 2000 / 4000% damage to enemies, heals allies 10 / 15 / 30 / 60% in 12 / 15 / 20 / 30m. It comes back after 12 / 9 / 5 / 2.5 minutes and its vengeance stacks up until the stage ends |
+| Vile Censer | Enemies hit by the tendrils are linked for 1s and share 10 / 20 / 40 / 75% of the damage any of them takes. When a linked enemy dies, each other has a 3 / 6 / 15 / 30% chance to be executed (not bosses) |
 
 ### Hexes
 A quality Hex is worse than a normal one. Cleansing it guarantees a choice of its quality.
 
 | Hex | Quality malus |
 |---|---|
-| Hex of Acceleration | Every 3s, acceleration swings between -40% and -55 / 65 / 75 / 90% |
-| Hex of Blindness | Vision limited to 65 / 40 / 20 / 1m |
-| Hex of Famine | Healing reduced by 45 / 50 / 60 / 99% |
-| Hex of Greed | Shares an item every 13 / 11 / 9 / 6s. Legendary: with 5 enemies |
-| Hex of Haunting | Poltergeists deal +25 / 50 / 100 / 200% damage, with a 25 / 50 / 75 / 100% chance of a random boon. Legendary: immune for 5s when they appear |
-| Hex of Leaping | Each jump costs 30 / 35 / 45% of your jump height. Legendary: you can't jump at all |
-| Hex of Loss | 15 / 25 / 35 / 50% of your items disabled |
-| Hex of Mimicry | Mimics gain +20 / 40 / 70 / 100% damage and movement speed. Legendary: immune for 5s when they appear |
-| Hex of Misfortune | 60 / 70 / 80 / 100% chance of a debuff. Epic: 2 at a time. Legendary: 4 |
-| Hex of Ossification | Enemies get 125 / 150 / 200 / 300% barrier. Epic+: also fully healed. Legendary: an elite's death passes its elite powers to them for 20s |
-| Hex of Pain | Max health reduced by 35 / 40 / 50 / 80% |
-| Hex of Patience | Outside the charging Teleporter: an extra 0.5 / 0.75 / 1 / 1.5% max health per second, growing over time. Epic+: a random debuff every 3s. Legendary: 10% chance every 3s to be executed |
+| Hex of Acceleration | Every 3s, acceleration swings between -40% and -50 / 60 / 75 / 95% |
+| Hex of Blindness | Vision limited to 65 / 40 / 20 / 1m; enemies you can't see deal +15 / 30 / 75 / 150% damage to you |
+| Hex of Famine | Healing reduced by 45 / 50 / 65 / 95%; the healing you lose heals the nearest enemy instead (x0.3 / 0.6 / 1.5 / 3) |
+| Hex of Greed | Shares an item every 13 / 11 / 8 / 5s, with 3 / 4 / 5 / 8 enemies |
+| Hex of Haunting | Poltergeists deal +25 / 50 / 125 / 250% damage, have a 25 / 50 / 100 / 100% chance of a random boon, and are immune for 1 / 2 / 4 / 8s when they appear |
+| Hex of Leaping | Each jump costs 30 / 35 / 50 / 75% of your jump height and pushes you sideways in a random direction (5 / 10 / 25 / 50 m/s) |
+| Hex of Loss | 15 / 25 / 40 / 60% of your items disabled |
+| Hex of Mimicry | Mimics gain +20 / 40 / 100 / 200% damage and movement speed, and are immune for 1 / 2 / 4 / 8s when they appear |
+| Hex of Misfortune | 60 / 70 / 85 / 100% chance of a debuff; each has a 20 / 40 / 100 / 100% chance to bring 1 / 1 / 2 / 4 more |
+| Hex of Ossification | Enemies get 125 / 150 / 225 / 350% barrier, are healed 20 / 40 / 100 / 100%, and an elite's death passes its elite powers to them for 4 / 8 / 20 / 40s |
+| Hex of Pain | Max health reduced by 35 / 40 / 50 / 80%; hits have a 10 / 20 / 40 / 75% chance to leave a **wound** that deals 25 / 50 / 125 / 250% of the hit again over 4s |
+| Hex of Patience | Outside the charging Teleporter: an extra 0.5 / 1 / 2.5 / 5% max health per second, growing over time; every 3s, a 20 / 40 / 100 / 100% chance of a random debuff and a 0.5 / 1 / 3 / 10% chance to be executed |
 | Hex of Rain | Difficulty +30 / 35 / 45 / 100% |
-| Hex of Strife | 10 / 25 / 50% chance of one more Mountain effect. Legendary: always two more (3 in total) |
+| Hex of Strife | 10 / 25 / 60 / 100% chance of 1 / 1 / 2 / 3 more Mountain effects |
 
 Hex of Rain, Strife and Patience affect the whole team, so the best quality on the team counts.
 
@@ -132,7 +132,6 @@ Not covered: N'tormat Pages, the DLC's boss items and equipment, and the Seed of
 
 ## Known issues
 
-- **Man-o'-War:** the jellyfish looks like a small red orb while it flies (its explosion is the real Jellyfish nova).
 - **Nightmare Demon:** when its host dies, a demon sometimes falls to the ground and fades instead of jumping to a nearby enemy.
 
 ## Feedback

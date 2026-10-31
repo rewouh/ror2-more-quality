@@ -12,8 +12,8 @@ namespace MoreQuality.Items
     // Each extra hop rolls separately, up to a cap.
     internal static class Malice
     {
-        private static readonly T4 Chance = new T4(0.15f, 0.25f, 0.4f, 0.6f);
-        private static readonly T4 MaxHops = new T4(3f, 5f, 8f, 12f);
+        private static readonly T4 Chance = new T4(0.1f, 0.2f, 0.5f, 0.9f);
+        private static readonly T4 MaxHops = new T4(2f, 4f, 10f, 20f);
 
         // Every orb of one Malice chain shares the same bouncedObjects list, so it identifies the chain.
         private sealed class Hops { public int Count; }
@@ -31,7 +31,7 @@ namespace MoreQuality.Items
             if (!Q.Any(counts)) return;
 
             var chain = hops.GetOrCreateValue(__instance.bouncedObjects);
-            if (chain.Count >= (int)Q.AtHighest(counts, MaxHops)) return;
+            if (chain.Count >= (int)Q.Stack(counts, MaxHops)) return;
             var chance = Mathf.Min(0.9f, Q.Sum(counts, Chance));
             if (!Util.CheckRoll(chance * 100f)) return;
             chain.Count++;

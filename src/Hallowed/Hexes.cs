@@ -6,6 +6,7 @@ using System.Runtime.CompilerServices;
 using HarmonyLib;
 using ItemQualities;
 using R2API;
+using EntityStates;
 using RoR2;
 using RoR2.Items;
 using UnityEngine;
@@ -18,7 +19,7 @@ namespace MoreQuality.Hallowed
     // Hex of Acceleration: acceleration swings every 3 seconds between the normal penalty and a harsher one.
     internal static class HexOfAcceleration
     {
-        private static readonly T4 HarshPenalty = new T4(0.55f, 0.65f, 0.75f, 0.9f);
+        private static readonly T4 HarshPenalty = new T4(0.5f, 0.6f, 0.75f, 0.95f);
         private const float Period = 3f;
         private const float BasePenalty = 0.4f;
         private static bool harsh;
@@ -50,16 +51,26 @@ namespace MoreQuality.Hallowed
         }
     }
 
-    // Hex of Blindness: vision drops much further.
+    // Hex of Blindness: vision drops much further, and enemies you can't see hit you harder.
     internal static class HexOfBlindness
     {
         private static readonly T4 Vision = new T4(65f, 40f, 20f, 1f);
+        private static readonly T4 UnseenDamage = new T4(0.15f, 0.3f, 0.75f, 1.5f);
         private static readonly System.Action<CharacterBody, float> setVision =
             AccessTools.MethodDelegate<System.Action<CharacterBody, float>>(AccessTools.PropertySetter(typeof(CharacterBody), nameof(CharacterBody.visionDistance)));
 
         internal static void Init()
         {
             Hooks.Patch(typeof(CharacterBody), nameof(CharacterBody.RecalculateStats), typeof(HexOfBlindness), postfix: nameof(After));
+            DamageHooks.Add(Unseen);
+        }
+
+        private static void Unseen(HealthComponent victim, DamageInfo damageInfo, CharacterBody attacker)
+        {
+            var body = victim.body;
+            var tier = Q.Highest(Q.Counts(body, DLC4Content.Items.Blindness));
+            if (tier == QualityTier.None || attacker == body) return;
+            if ((attacker.corePosition - body.corePosition).sqrMagnitude > body.visionDistance * body.visionDistance) damageInfo.damage *= 1f + Q.Stack(Q.Counts(body, DLC4Content.Items.Blindness), UnseenDamage);
         }
 
         private static void After(CharacterBody __instance)
@@ -69,28 +80,57 @@ namespace MoreQuality.Hallowed
         }
     }
 
-    // Hex of Famine: healing is cut harder (Legendary: almost entirely).
+    // Hex of Famine: healing is cut harder, and the healing you lose goes to the nearest enemy instead: it
+    // heals the same share of its own max health, times the quality's multiplier.
     internal static class HexOfFamine
     {
-        private static readonly T4 Reduction = new T4(0.45f, 0.5f, 0.6f, 0.99f);
+        private static readonly T4 Reduction = new T4(0.45f, 0.5f, 0.65f, 0.95f);
+        private static readonly T4 Stolen = new T4(0.3f, 0.6f, 1.5f, 3f);
         private const float BaseReduction = 0.4f;
+        private const float StealRange = 40f;
+        private static readonly Dictionary<HealthComponent, float> lost = new Dictionary<HealthComponent, float>();   // share of max health
 
         internal static void Init()
         {
             Hooks.Patch(typeof(HealthComponent), nameof(HealthComponent.Heal), typeof(HexOfFamine), prefix: nameof(Before));
+            Ticker.Every(0.5f, Steal);
+            Run.onRunStartGlobal += _ => lost.Clear();
         }
 
         private static void Before(HealthComponent __instance, ref float amount)
         {
             var tier = Q.Highest(Q.Counts(__instance.body, DLC4Content.Items.LowerHealing));
-            if (tier != QualityTier.None) amount *= (1f - Reduction[tier]) / (1f - BaseReduction);
+            if (tier == QualityTier.None || amount <= 0f) return;
+            if (__instance.fullHealth > 0f)
+            {
+                float share;
+                lost.TryGetValue(__instance, out share);
+                lost[__instance] = share + amount * Reduction[tier] / __instance.fullHealth;
+            }
+            amount *= (1f - Reduction[tier]) / (1f - BaseReduction);
+        }
+
+        // Batched: healing comes in many small ticks.
+        private static void Steal()
+        {
+            foreach (var entry in lost.ToList())
+            {
+                lost.Remove(entry.Key);
+                var victim = entry.Key;
+                if (!victim || !victim.body) continue;
+                var tier = Q.Highest(Q.Counts(victim.body, DLC4Content.Items.LowerHealing));
+                var thief = Enemies.Near(victim.body.corePosition, StealRange, victim.body.teamComponent.teamIndex).FirstOrDefault();
+                if (tier == QualityTier.None || !thief) continue;
+                thief.HealFraction(entry.Value * Q.Stack(Q.Counts(victim.body, DLC4Content.Items.LowerHealing), Stolen), default(ProcChainMask));
+            }
         }
     }
 
-    // Hex of Greed: shares more often; Legendary shares with 5 enemies.
+    // Hex of Greed: shares more often, with more enemies.
     internal static class HexOfGreed
     {
-        private static readonly T4 Interval = new T4(13f, 11f, 9f, 6f);
+        private static readonly T4 Interval = new T4(13f, 11f, 8f, 5f);
+        private static readonly T4 Targets = new T4(3f, 4f, 5f, 8f);
 
         internal static void Init()
         {
@@ -106,7 +146,8 @@ namespace MoreQuality.Hallowed
 
         private static int GetTargets(ShareItemsWithEnemiesBehaviour behaviour)
         {
-            return Q.Highest(Q.Counts(behaviour.body, DLC4Content.Items.ShareItemsWithEnemies)) == QualityTier.Legendary ? 5 : 3;
+            var tier = Q.Highest(Q.Counts(behaviour.body, DLC4Content.Items.ShareItemsWithEnemies));
+            return tier == QualityTier.None ? 3 : (int)Targets[tier];
         }
 
         private static IEnumerable<CodeInstruction> IntervalPatch(IEnumerable<CodeInstruction> instructions)
@@ -146,7 +187,7 @@ namespace MoreQuality.Hallowed
             RoR2Content.Buffs.ArmorBoost, RoR2Content.Buffs.WarCryBuff, RoR2Content.Buffs.CloakSpeed, RoR2Content.Buffs.FullCrit, RoR2Content.Buffs.PowerBuff
         };
 
-        public static void Empower(CharacterMaster master, int bonusPercent, float boonChance, bool immune)
+        public static void Empower(CharacterMaster master, int bonusPercent, float boonChance, float immuneSeconds)
         {
             if (!master) return;
             RoR2Application.onNextUpdate += () =>
@@ -155,17 +196,17 @@ namespace MoreQuality.Hallowed
                 if (!body) return;
                 body.SetBuffCount(CustomBuffs.HexEmpowered.buffIndex, bonusPercent);
                 if (Util.CheckRoll(boonChance)) body.AddBuff(Boons[Random.Range(0, Boons.Length)]);
-                if (immune) body.AddTimedBuff(RoR2Content.Buffs.Immune, 5f);
+                if (immuneSeconds > 0f) body.AddTimedBuff(RoR2Content.Buffs.Immune, immuneSeconds);
             };
         }
     }
 
-    // Hex of Haunting: Poltergeists hit harder and may get a random boon (always at Legendary, plus
-    // 5 seconds of immunity when they appear).
+    // Hex of Haunting: Poltergeists hit harder, may get a random boon, and are immune for a moment when they appear.
     internal static class HexOfHaunting
     {
-        private static readonly T4 Damage = new T4(25f, 50f, 100f, 200f);
-        private static readonly T4 BoonChance = new T4(25f, 50f, 75f, 100f);
+        private static readonly T4 Damage = new T4(25f, 50f, 125f, 250f);
+        private static readonly T4 BoonChance = new T4(25f, 50f, 100f, 100f);
+        private static readonly T4 Immune = new T4(1f, 2f, 4f, 8f);
         private static readonly AccessTools.FieldRef<HauntedInteractable, CharacterMaster> spawned = AccessTools.FieldRefAccess<HauntedInteractable, CharacterMaster>("poltergeistMasterInstance");
         private static readonly ConditionalWeakTable<CharacterMaster, object> done = new ConditionalWeakTable<CharacterMaster, object>();
 
@@ -181,14 +222,15 @@ namespace MoreQuality.Hallowed
             if (!NetworkServer.active || !master || done.TryGetValue(master, out seen)) return;
             done.Add(master, null);
             var tier = Q.Highest(Q.Counts(__instance.ownerBody, DLC4Content.Items.HexHaunting));
-            if (tier != QualityTier.None) HexMonsters.Empower(master, (int)Damage[tier], BoonChance[tier], tier == QualityTier.Legendary);
+            if (tier != QualityTier.None) HexMonsters.Empower(master, (int)Damage[tier], BoonChance[tier], Immune[tier]);
         }
     }
 
-    // Hex of Mimicry: Mimics are faster and hit harder; Legendary ones are immune for 5 seconds.
+    // Hex of Mimicry: Mimics are faster, hit harder, and are immune for a moment when they appear.
     internal static class HexOfMimicry
     {
-        private static readonly T4 Bonus = new T4(20f, 40f, 70f, 100f);
+        private static readonly T4 Bonus = new T4(20f, 40f, 100f, 200f);
+        private static readonly T4 Immune = new T4(1f, 2f, 4f, 8f);
         // Must start at None: QualityTier's default value (0) is Uncommon, which empowered every summon.
         private static QualityTier spawning = QualityTier.None;
 
@@ -203,22 +245,42 @@ namespace MoreQuality.Hallowed
 
         private static void Summoned(CharacterMaster __result)
         {
-            if (spawning != QualityTier.None) HexMonsters.Empower(__result, (int)Bonus[spawning], 0f, spawning == QualityTier.Legendary);
+            if (spawning != QualityTier.None) HexMonsters.Empower(__result, (int)Bonus[spawning], 0f, Immune[spawning]);
         }
     }
 
-    // Hex of Leaping: each jump costs more height. Legendary: no jumping at all.
+    // Hex of Leaping: each jump costs more height, and throws you off in a random direction.
     internal static class HexOfLeaping
     {
-        private static readonly T4 ExtraPenalty = new T4(5f, 10f, 20f, 35f);   // on top of the base 25%
+        private static readonly T4 ExtraPenalty = new T4(5f, 10f, 25f, 50f);   // on top of the base 25%
+        private static readonly T4 Kick = new T4(5f, 10f, 25f, 50f);           // sideways speed added to each jump
 
         internal static void Init()
         {
             Hooks.Patch(typeof(WeakAssHamstringBehaviour), "HandleJump", typeof(HexOfLeaping), postfix: nameof(AfterJump));
-            RecalculateStatsAPI.GetStatCoefficients += (body, args) =>
-            {
-                if (Q.Highest(Q.Counts(body, DLC4Content.Items.WeakAssHamstring)) == QualityTier.Legendary) args.jumpPowerMultAdd -= 1f;
-            };
+            Hooks.Patch(typeof(GenericCharacterMain), nameof(GenericCharacterMain.ProcessJump), typeof(HexOfLeaping), prefix: nameof(BeforeProcessJump), postfix: nameof(AfterProcessJump), args: new[] { typeof(bool) });
+        }
+
+        // EntityState.characterMotor/characterBody are protected: go through the state machine instead.
+        private static CharacterMotor Motor(GenericCharacterMain state) { return state.outer ? state.outer.commonComponents.characterMotor : null; }
+        private static CharacterBody Body(GenericCharacterMain state) { return state.outer ? state.outer.commonComponents.characterBody : null; }
+
+        // Movement belongs to the player's own game, so the kick is applied there.
+        private static void BeforeProcessJump(GenericCharacterMain __instance, out int __state)
+        {
+            var motor = Motor(__instance);
+            __state = motor ? motor.jumpCount : -1;
+        }
+
+        private static void AfterProcessJump(GenericCharacterMain __instance, int __state)
+        {
+            var motor = Motor(__instance);
+            var body = Body(__instance);
+            if (__state < 0 || !motor || !body || motor.jumpCount <= __state || !body.hasEffectiveAuthority) return;
+            var tier = Q.Highest(Q.Counts(body, DLC4Content.Items.WeakAssHamstring));
+            if (tier == QualityTier.None) return;
+            var direction = Random.insideUnitCircle.normalized;
+            motor.velocity += new Vector3(direction.x, 0f, direction.y) * Q.Stack(Q.Counts(body, DLC4Content.Items.WeakAssHamstring), Kick);
         }
 
         private static void AfterJump(WeakAssHamstringBehaviour __instance)
@@ -234,7 +296,7 @@ namespace MoreQuality.Hallowed
     // Hex of Loss: a larger share of your items is disabled.
     internal static class HexOfLoss
     {
-        private static readonly T4 Share = new T4(0.15f, 0.25f, 0.35f, 0.5f);
+        private static readonly T4 Share = new T4(0.15f, 0.25f, 0.4f, 0.6f);
 
         internal static void Init()
         {
@@ -264,10 +326,12 @@ namespace MoreQuality.Hallowed
         }
     }
 
-    // Hex of Misfortune: debuffs are more likely; Epic gives 2 at a time, Legendary 4.
+    // Hex of Misfortune: debuffs are more likely, and each can come with more.
     internal static class HexOfMisfortune
     {
-        private static readonly T4 Chance = new T4(60f, 70f, 80f, 100f);
+        private static readonly T4 Chance = new T4(60f, 70f, 85f, 100f);
+        private static readonly T4 ExtraChance = new T4(20f, 40f, 100f, 100f);
+        private static readonly T4 Extra = new T4(1f, 1f, 2f, 4f);
         private static readonly MethodInfo applyDebuff = AccessTools.Method(typeof(RandomDebuffOnInteractBehaviour), "ApplyDebuff");
         private static readonly MethodInfo reroll = AccessTools.Method(typeof(RandomDebuffOnInteractBehaviour), "RerollHalfOfDebuffs");
         private static int applied;
@@ -294,20 +358,24 @@ namespace MoreQuality.Hallowed
             {
                 if (Util.CheckRoll(topUp, body.master)) { applyDebuff.Invoke(__instance, null); hits++; }
             }
-            var extra = tier == QualityTier.Legendary ? 3 : tier == QualityTier.Epic ? 1 : 0;
-            for (var i = 0; i < hits * extra; i++)
+            for (var hit = 0; hit < hits; hit++)
             {
-                reroll.Invoke(__instance, null);
-                applyDebuff.Invoke(__instance, null);
+                if (!Util.CheckRoll(ExtraChance[tier], body.master)) continue;
+                for (var i = 0; i < Extra[tier]; i++)
+                {
+                    reroll.Invoke(__instance, null);
+                    applyDebuff.Invoke(__instance, null);
+                }
             }
         }
     }
 
-    // Hex of Ossification: more barrier; Epic also fully heals them; Legendary passes on an elite's powers.
+    // Hex of Ossification: more barrier; enemies are also healed, and an elite's death passes on its powers.
     internal static class HexOfOssification
     {
-        private static readonly T4 Barrier = new T4(1.25f, 1.5f, 2f, 3f);
-        private const float EliteDuration = 20f;
+        private static readonly T4 Barrier = new T4(1.25f, 1.5f, 2.25f, 3.5f);
+        private static readonly T4 HealFraction = new T4(0.2f, 0.4f, 1f, 1f);
+        private static readonly T4 EliteDuration = new T4(4f, 8f, 20f, 40f);
 
         internal static void Init()
         {
@@ -319,23 +387,30 @@ namespace MoreQuality.Hallowed
             var tier = Q.Highest(Q.Counts(damageReport.attackerBody, DLC4Content.Items.BarrierEnemiesOnKill));
             if (tier == QualityTier.None || !victimBody) return;
             var radius = 15f + 15f * itemStacks + victimBody.radius;
-            var eliteBuffs = tier == QualityTier.Legendary && victimBody.isElite
+            var eliteBuffs = victimBody.isElite
                 ? BuffCatalog.eliteBuffIndices.Where(victimBody.HasBuff).ToList()
                 : new List<BuffIndex>();
             foreach (var enemy in Enemies.Near(victimBody.corePosition, radius, attackerTeamIndex, victimBody.healthComponent))
             {
                 enemy.AddBarrier(victimBody.maxHealth * (Barrier[tier] - 1f));
-                if (tier >= QualityTier.Epic) enemy.HealFraction(1f, default(ProcChainMask));
-                foreach (var buff in eliteBuffs) enemy.body.AddTimedBuff(buff, EliteDuration);
+                enemy.HealFraction(HealFraction[tier], default(ProcChainMask));
+                foreach (var buff in eliteBuffs) enemy.body.AddTimedBuff(buff, EliteDuration[tier]);
             }
         }
     }
 
-    // Hex of Pain: max health falls further (Legendary: by 80%).
+    // Hex of Pain: max health falls further, and hits can leave a wound that keeps hurting you.
     internal static class HexOfPain
     {
         // Extra curse per quality copy, on top of the game's 0.3: 1 / (1 - reduction) - 1.3.
         private static readonly T4 ExtraCurse = new T4(0.2385f, 0.3667f, 0.7f, 3.7f);
+        private static readonly T4 WoundChance = new T4(10f, 20f, 40f, 75f);
+        private static readonly T4 WoundDamage = new T4(0.25f, 0.5f, 1.25f, 2.5f);   // of the hit, over the wound's duration
+        private const int WoundTicks = 4;   // one per second
+
+        private sealed class Wound { public HealthComponent Victim; public float PerTick; public int TicksLeft; }
+        private static readonly List<Wound> wounds = new List<Wound>();
+        private static bool bleeding;
 
         internal static void Init()
         {
@@ -344,16 +419,60 @@ namespace MoreQuality.Hallowed
                 var counts = Q.Counts(body, DLC4Content.Items.HexCurse);
                 if (Q.Any(counts)) args.baseCurseAdd += Q.Sum(counts, ExtraCurse);
             };
+            GlobalEventManager.onServerDamageDealt += OnHit;
+            Ticker.Every(1f, Tick);
+            Run.onRunStartGlobal += _ => wounds.Clear();
+        }
+
+        private static void OnHit(DamageReport report)
+        {
+            var victim = report.victimBody;
+            if (bleeding || !victim || report.damageDealt <= 0f || report.dotType != DotController.DotIndex.None || !report.victim.alive) return;
+            var tier = Q.Highest(Q.Counts(victim, DLC4Content.Items.HexCurse));
+            if (tier == QualityTier.None || !Util.CheckRoll(Q.Stack(Q.Counts(victim, DLC4Content.Items.HexCurse), WoundChance))) return;
+            wounds.Add(new Wound { Victim = report.victim, PerTick = report.damageDealt * Q.Stack(Q.Counts(victim, DLC4Content.Items.HexCurse), WoundDamage) / WoundTicks, TicksLeft = WoundTicks });
+            Refresh(victim);
+        }
+
+        private static void Tick()
+        {
+            bleeding = true;
+            try
+            {
+                foreach (var wound in wounds.ToList())
+                {
+                    if (!wound.Victim || !wound.Victim.alive || wound.TicksLeft <= 0) { wounds.Remove(wound); continue; }
+                    wound.TicksLeft--;
+                    wound.Victim.TakeDamage(new DamageInfo
+                    {
+                        damage = wound.PerTick,
+                        position = wound.Victim.body ? wound.Victim.body.corePosition : wound.Victim.transform.position,
+                        procCoefficient = 0f,
+                        damageColorIndex = DamageColorIndex.Bleed,
+                        damageType = DamageType.BypassArmor | DamageType.BypassBlock
+                    });
+                    if (wound.TicksLeft <= 0) wounds.Remove(wound);
+                    if (wound.Victim && wound.Victim.body) Refresh(wound.Victim.body);
+                }
+            }
+            finally { bleeding = false; }
+        }
+
+        private static void Refresh(CharacterBody body)
+        {
+            var open = wounds.Count(w => w.Victim && w.Victim.body == body);
+            if (body.GetBuffCount(CustomBuffs.Wounded) != open) body.SetBuffCount(CustomBuffs.Wounded.buffIndex, open);
         }
     }
 
-    // Hex of Patience: outside the charging Teleporter you take extra, growing damage. Epic: a random
-    // debuff every 3 seconds. Legendary: a 10% chance every 3 seconds to be executed.
+    // Hex of Patience: outside the charging Teleporter you take extra, growing damage, and every 3 seconds
+    // may get a random debuff or even be executed.
     internal static class HexOfPatience
     {
-        private static readonly T4 DamagePerSecond = new T4(0.005f, 0.0075f, 0.01f, 0.015f);   // of max health
+        private static readonly T4 DamagePerSecond = new T4(0.005f, 0.01f, 0.025f, 0.05f);   // of max health
         private const float Growth = 0.125f;
-        private const float ExecuteChance = 10f;
+        private static readonly T4 DebuffChance = new T4(20f, 40f, 100f, 100f);
+        private static readonly T4 ExecuteChance = new T4(0.5f, 1f, 3f, 10f);
         private static readonly Dictionary<CharacterBody, float> outside = new Dictionary<CharacterBody, float>();
         private static int tick;
 
@@ -395,8 +514,8 @@ namespace MoreQuality.Hallowed
                     damageType = DamageType.BypassArmor | DamageType.BypassBlock
                 });
                 if (tick % 3 != 0) continue;
-                if (tier >= QualityTier.Epic) body.AddTimedBuff(Debuffs[Random.Range(0, Debuffs.Length)], 3f);
-                if (tier == QualityTier.Legendary && Util.CheckRoll(ExecuteChance)) health.Suicide();
+                if (Util.CheckRoll(DebuffChance[tier])) body.AddTimedBuff(Debuffs[Random.Range(0, Debuffs.Length)], 3f);
+                if (Util.CheckRoll(ExecuteChance[tier])) health.Suicide();
             }
         }
     }
@@ -438,10 +557,11 @@ namespace MoreQuality.Hallowed
         }
     }
 
-    // Hex of Strife: a chance of one more Mountain effect; Legendary always adds two.
+    // Hex of Strife: a chance of more Mountain effects.
     internal static class HexOfStrife
     {
-        private static readonly T4 ExtraChance = new T4(10f, 25f, 50f, 100f);
+        private static readonly T4 ExtraChance = new T4(10f, 25f, 60f, 100f);
+        private static readonly T4 Extra = new T4(1f, 1f, 2f, 3f);
         private static readonly ConditionalWeakTable<TeleporterInteraction, StrongBox<int>> extra = new ConditionalWeakTable<TeleporterInteraction, StrongBox<int>>();
 
         internal static void Init()
@@ -457,7 +577,7 @@ namespace MoreQuality.Hallowed
             var box = extra.GetValue(__instance, _ => new StrongBox<int>(-1));
             if (box.Value < 0)
             {
-                box.Value = tier == QualityTier.Legendary ? 2 : Util.CheckRoll(ExtraChance[tier]) ? 1 : 0;   // rolled once per Teleporter
+                box.Value = Util.CheckRoll(ExtraChance[tier]) ? (int)Extra[tier] : 0;   // rolled once per Teleporter
             }
             __instance.hexBonusStacks += box.Value;
         }

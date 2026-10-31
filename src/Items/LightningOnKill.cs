@@ -1,9 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
-using ItemQualities;
-using R2API;
 using RoR2;
-using RoR2.Orbs;
 using SS2;
 using UnityEngine;
 using UnityEngine.Networking;
@@ -11,193 +8,154 @@ using UnityEngine.Networking;
 namespace MoreQuality.Items
 {
     // Man-o'-War: kills can release a friendly jellyfish that drifts to the nearest enemy and explodes.
-    // It's an orb with a jellyfish model as its visual rather than an AI ally, so it can't get stuck.
-    // A jellyfish kill is a kill like any other, so it can release more jellyfish.
+    // It's a real Jellyfish (summoned on your team, with the game's own model and AI), so it looks right on
+    // every game. It explodes in the Jellyfish's electric nova when it reaches an enemy, runs out of time,
+    // or is killed. A jellyfish kill is credited to you, so it can release more jellyfish.
     internal static class LightningOnKill
     {
-        private static readonly T4 Chance = new T4(10f, 20f, 35f, 50f);
+        private static readonly T4 Chance = new T4(10f, 20f, 40f, 70f);
         private static readonly T4 ChancePerStack = new T4(10f, 15f, 20f, 25f);
-        private static readonly T4 Damage = new T4(3f, 5f, 8f, 12f);
-        private static readonly T4 Radius = new T4(6f, 7f, 8f, 10f);
+        private static readonly T4 Damage = new T4(3f, 6f, 15f, 30f);
+        private static readonly T4 Radius = new T4(6f, 7f, 9f, 12f);
         private const float Range = 40f;
-        private const float Speed = 14f;
+        private const float Lifetime = 12f;
+        private const float SpeedMultiplier = 2.5f;
 
-        private static GameObject jellyEffect;
+        private sealed class Jelly
+        {
+            public CharacterBody Owner;
+            public TeamIndex Team;
+            public float Damage, Radius, Until;
+            public bool Crit, Exploded;
+        }
+
+        private static readonly Dictionary<CharacterMaster, Jelly> jellies = new Dictionary<CharacterMaster, Jelly>();
+        private static GameObject jellyMaster;
         private static GameObject explosionEffect;
         private static string explosionSound;
 
         internal static void Init()
         {
-            ContentProvider.AddBuilder(BuildEffect);
             GlobalEventManager.onCharacterDeathGlobal += OnDeath;
-        }
-
-        private static void BuildEffect(RoR2.ContentManagement.ContentPack pack)
-        {
-
-            GameObject source = null;
-            foreach (var path in new[] { "Prefabs/Effects/OrbEffects/InfusionOrbEffect", "Prefabs/Effects/OrbEffects/HealthOrbEffect", "Prefabs/Effects/OrbEffects/ArrowOrbEffect" })
-            {
-                source = LegacyResourcesAPI.Load<GameObject>(path);
-                if (source && source.GetComponent<OrbEffect>()) break;
-            }
-            if (!source) { MoreQualityPlugin.Log.LogWarning("No orb effect to build the jellyfish from"); return; }
-
-            jellyEffect = PrefabAPI.InstantiateClone(source, "QualitySS2JellyfishOrbEffect", false);
-            var orbEffect = jellyEffect.GetComponent<OrbEffect>();
-            if (orbEffect) orbEffect.movementCurve = AnimationCurve.EaseInOut(0f, 0f, 1f, 1f);
-            jellyEffect.AddComponent<JellyfishVisual>();
-            pack.effectDefs.Add(new[] { new EffectDef(jellyEffect) });
-        }
-
-        // Unity won't parent objects under a prefab at load time, so each orb effect instance builds its
-        // jellyfish when it appears: hide the orb's own visuals, then add the Jellyfish's meshes.
-        // A copy of the whole character model stays invisible (its CharacterModel, skin and animator
-        // all expect a living body), so the meshes are drawn as plain static meshes in their rest pose.
-        private sealed class JellyfishVisual : MonoBehaviour
-        {
-            private struct Part { public Mesh Mesh; public Material[] Materials; public Matrix4x4 Pose; }
-            private static List<Part> parts;
-
-            private static List<Part> Parts()
-            {
-                if (parts != null) return parts;
-                parts = new List<Part>();
-                var body = LegacyResourcesAPI.Load<GameObject>("Prefabs/CharacterBodies/JellyfishBody");
-                var locator = body ? body.GetComponent<ModelLocator>() : null;
-                var model = locator ? locator.modelTransform : null;
-                if (!model) return parts;
-                var characterModel = model.GetComponent<CharacterModel>();
-                foreach (var renderer in model.GetComponentsInChildren<Renderer>(true))
-                {
-                    Mesh mesh = null;
-                    var skinned = renderer as SkinnedMeshRenderer;
-                    if (skinned) mesh = skinned.sharedMesh;
-                    else if (renderer is MeshRenderer) { var filter = renderer.GetComponent<MeshFilter>(); mesh = filter ? filter.sharedMesh : null; }
-                    if (!mesh) continue;
-                    var materials = renderer.sharedMaterials;
-                    if (characterModel && (materials.Length == 0 || !materials[0]))
-                    {
-                        foreach (var info in characterModel.baseRendererInfos)
-                        {
-                            if (info.renderer == renderer && info.defaultMaterial) materials = new[] { info.defaultMaterial };
-                        }
-                    }
-                    parts.Add(new Part { Mesh = mesh, Materials = materials, Pose = model.worldToLocalMatrix * renderer.transform.localToWorldMatrix });
-                }
-                return parts;
-            }
-
-            private void Start()
-            {
-                try
-                {
-                    var meshes = Parts();
-                    if (meshes.Count == 0) return;
-
-                    foreach (var particles in GetComponentsInChildren<ParticleSystem>(true)) particles.gameObject.SetActive(false);
-                    foreach (var renderer in GetComponentsInChildren<Renderer>(true)) renderer.enabled = false;
-
-                    foreach (var part in meshes)
-                    {
-                        var piece = new GameObject("JellyfishPart");
-                        piece.transform.SetParent(transform, false);
-                        piece.transform.localPosition = part.Pose.GetColumn(3);
-                        piece.transform.localRotation = part.Pose.rotation;
-                        piece.transform.localScale = part.Pose.lossyScale;
-                        piece.AddComponent<MeshFilter>().sharedMesh = part.Mesh;
-                        piece.AddComponent<MeshRenderer>().sharedMaterials = part.Materials;
-                    }
-                }
-                catch (System.Exception e)
-                {
-                    MoreQualityPlugin.Log.LogWarning("Jellyfish visual failed, showing a plain orb: " + e.Message);
-                }
-            }
+            RoR2Application.onFixedUpdate += Drive;
+            Run.onRunStartGlobal += _ => jellies.Clear();
         }
 
         private static void OnDeath(DamageReport report)
         {
+            if (!NetworkServer.active || !report.victimBody) return;
+
+            // One of our jellyfish died before reaching anything: it still goes off.
+            Jelly jelly;
+            if (report.victimMaster && jellies.TryGetValue(report.victimMaster, out jelly))
+            {
+                Explode(jelly, report.victimBody.corePosition);
+                jellies.Remove(report.victimMaster);
+                return;
+            }
+
             var attacker = report.attackerBody;
-            if (!NetworkServer.active || !attacker || !report.victimBody) return;
+            if (!attacker) return;
             var counts = Q.Counts(attacker, SS2Content.Items.LightningOnKill);
             if (!Q.Any(counts)) return;
             var chance = Mathf.Min(90f, Q.Stacked(counts, Chance, ChancePerStack));
             if (!Util.CheckRoll(chance, attacker.master)) return;
-
-            var origin = report.victimBody.corePosition;
-            var target = Enemies.Near(origin, Range, attacker.teamComponent.teamIndex, report.victim).FirstOrDefault();
-            if (!target || !target.body.mainHurtBox) return;
-            var tier = Q.Highest(counts);
-            OrbManager.instance.AddOrb(new JellyfishOrb
-            {
-                origin = origin,
-                target = target.body.mainHurtBox,
-                attacker = attacker.gameObject,
-                team = attacker.teamComponent.teamIndex,
-                damage = attacker.damage * Damage[tier],
-                radius = Radius[tier],
-                crit = attacker.RollCrit()
-            });
+            if (!Enemies.Near(report.victimBody.corePosition, Range, attacker.teamComponent.teamIndex, report.victim).Any()) return;
+            Summon(attacker, report.victimBody.corePosition + Vector3.up * 2f, counts);
         }
 
-        private sealed class JellyfishOrb : Orb
+        private static void Summon(CharacterBody owner, Vector3 position, ItemQualities.ItemQualityCounts counts)
         {
-            public GameObject attacker;
-            public TeamIndex team;
-            public float damage;
-            public float radius;
-            public bool crit;
-
-            public override void Begin()
+            if (!jellyMaster) jellyMaster = MasterCatalog.FindMasterPrefab("JellyfishMaster");
+            if (!jellyMaster) return;
+            var master = new MasterSummon
             {
-                duration = Mathf.Max(0.3f, distanceToTarget / Speed);
-                if (!jellyEffect) return;
-                var data = new EffectData { origin = origin, genericFloat = duration };
-                data.SetHurtBoxReference(target);
-                EffectManager.SpawnEffect(jellyEffect, data, true);
-            }
-
-            public override void OnArrival()
+                masterPrefab = jellyMaster,
+                position = position,
+                rotation = Quaternion.identity,
+                summonerBodyObject = owner.gameObject,
+                teamIndexOverride = owner.teamComponent.teamIndex,
+                ignoreTeamMemberLimit = true,
+                useAmbientLevel = true
+            }.Perform();
+            if (!master) return;
+            jellies[master] = new Jelly
             {
-                if (!target) return;
-                var position = target.transform.position;
-                new BlastAttack
+                Owner = owner,
+                Team = owner.teamComponent.teamIndex,
+                Damage = owner.damage * Q.Stack(counts, Damage),
+                Radius = Q.Stack(counts, Radius),
+                Until = Time.fixedTime + Lifetime,
+                Crit = owner.RollCrit()
+            };
+        }
+
+        // The jellyfish's own AI flies it at enemies; this makes it faster and sets it off on arrival.
+        private static void Drive()
+        {
+            if (!NetworkServer.active || jellies.Count == 0) return;
+            foreach (var entry in jellies.ToList())
+            {
+                var master = entry.Key;
+                var jelly = entry.Value;
+                var body = master ? master.GetBody() : null;
+                if (!master || (!body && Time.fixedTime > jelly.Until)) { jellies.Remove(master); continue; }
+                if (!body) continue;   // still spawning
+
+                if (body.baseMoveSpeed < 20f)
                 {
-                    attacker = attacker,
-                    inflictor = attacker,
-                    teamIndex = team,
-                    position = position,
-                    radius = radius,
-                    baseDamage = damage,
-                    crit = crit,
-                    procCoefficient = 1f,
-                    damageColorIndex = DamageColorIndex.Item,
-                    damageType = DamageType.Generic,
-                    falloffModel = BlastAttack.FalloffModel.None,
-                    attackerFiltering = AttackerFiltering.NeverHitSelf
-                }.Fire();
-                if (!explosionEffect) LoadNova();
-                if (explosionEffect) EffectManager.SpawnEffect(explosionEffect, new EffectData { origin = position, scale = radius }, true);
-                if (!string.IsNullOrEmpty(explosionSound)) Util.PlaySound(explosionSound, target.gameObject);
-            }
-
-            // The real Jellyfish's electric nova. Its prefab and sound live in the JellyNova state's
-            // config, which the game only applies when that state is created, so create one first.
-            private static void LoadNova()
-            {
-                try
-                {
-                    new EntityStates.JellyfishMonster.JellyNova();
-                    explosionEffect = EntityStates.JellyfishMonster.JellyNova.novaEffectPrefab;
-                    explosionSound = EntityStates.JellyfishMonster.JellyNova.novaSoundString;
+                    body.baseMoveSpeed *= SpeedMultiplier;
+                    body.baseAcceleration *= SpeedMultiplier;
+                    body.MarkAllStatsDirty();
                 }
-                catch (System.Exception e)
-                {
-                    MoreQualityPlugin.Log.LogWarning("Jellyfish nova not found, using a lightning strike: " + e.Message);
-                }
-                if (!explosionEffect) explosionEffect = LegacyResourcesAPI.Load<GameObject>("Prefabs/Effects/ImpactEffects/LightningStrikeImpact");
+                var target = Enemies.Near(body.corePosition, body.radius + 3f, jelly.Team).FirstOrDefault();
+                if (!target && Time.fixedTime < jelly.Until) continue;
+
+                jellies.Remove(master);
+                Explode(jelly, body.corePosition);
+                if (body.healthComponent) body.healthComponent.Suicide();
             }
+        }
+
+        private static void Explode(Jelly jelly, Vector3 position)
+        {
+            if (jelly.Exploded) return;
+            jelly.Exploded = true;
+            new BlastAttack
+            {
+                attacker = jelly.Owner ? jelly.Owner.gameObject : null,
+                inflictor = jelly.Owner ? jelly.Owner.gameObject : null,
+                teamIndex = jelly.Team,
+                position = position,
+                radius = jelly.Radius,
+                baseDamage = jelly.Damage,
+                crit = jelly.Crit,
+                procCoefficient = 1f,
+                damageColorIndex = DamageColorIndex.Item,
+                damageType = DamageType.Shock5s,
+                falloffModel = BlastAttack.FalloffModel.None,
+                attackerFiltering = AttackerFiltering.NeverHitSelf
+            }.Fire();
+            if (!explosionEffect) LoadNova();
+            if (explosionEffect) EffectManager.SpawnEffect(explosionEffect, new EffectData { origin = position, scale = jelly.Radius }, true);
+            if (!string.IsNullOrEmpty(explosionSound) && jelly.Owner) Util.PlaySound(explosionSound, jelly.Owner.gameObject);
+        }
+
+        // The real Jellyfish's electric nova. Its prefab and sound live in the JellyNova state's
+        // config, which the game only applies when that state is created, so create one first.
+        private static void LoadNova()
+        {
+            try
+            {
+                new EntityStates.JellyfishMonster.JellyNova();
+                explosionEffect = EntityStates.JellyfishMonster.JellyNova.novaEffectPrefab;
+                explosionSound = EntityStates.JellyfishMonster.JellyNova.novaSoundString;
+            }
+            catch (System.Exception e)
+            {
+                MoreQualityPlugin.Log.LogWarning("Jellyfish nova not found, using a lightning strike: " + e.Message);
+            }
+            if (!explosionEffect) explosionEffect = LegacyResourcesAPI.Load<GameObject>("Prefabs/Effects/ImpactEffects/LightningStrikeImpact");
         }
     }
 }

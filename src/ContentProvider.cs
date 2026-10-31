@@ -37,6 +37,8 @@ namespace MoreQuality
                 try { build(contentPack); }
                 catch (Exception e) { MoreQualityPlugin.Log.LogError("Content builder failed: " + e); }
             }
+            try { Visuals.Register(contentPack); }
+            catch (Exception e) { MoreQualityPlugin.Log.LogError("Effect registration failed: " + e); }
             args.ReportProgress(1f);
         }
 

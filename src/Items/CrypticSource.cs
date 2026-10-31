@@ -5,10 +5,11 @@ using SS2;
 
 namespace MoreQuality.Items
 {
-    // Each enemy the burst can hit refunds utility cooldown (max 3 enemies); Legendary doubles the radius.
+    // Each enemy the burst can hit refunds utility cooldown (max 3 enemies), and the burst is bigger.
     internal static class CrypticSource
     {
-        private static readonly T4 Refund = new T4(0.5f, 1f, 1.5f, 2.5f);
+        private static readonly T4 Refund = new T4(0.5f, 1f, 2.5f, 5f);
+        private static readonly T4 RadiusMult = new T4(1.1f, 1.2f, 1.5f, 2f);
         private const int MaxEnemies = 3;
 
         private struct Saved { public float BaseRadius, StackRadius; }
@@ -25,11 +26,8 @@ namespace MoreQuality.Items
             var counts = Q.Counts(body, SS2Content.Items.CrypticSource);
             if (!Q.Any(counts)) return;
 
-            if (Q.Highest(counts) == QualityTier.Legendary)
-            {
-                SS2.Items.CrypticSource.baseRadius *= 2f;
-                SS2.Items.CrypticSource.stackRadius *= 2f;
-            }
+            SS2.Items.CrypticSource.baseRadius *= Q.AtHighest(counts, RadiusMult);
+            SS2.Items.CrypticSource.stackRadius *= Q.AtHighest(counts, RadiusMult);
 
             // Cooldowns belong to whoever controls the body, so the refund is applied there.
             if (!body.hasEffectiveAuthority || !body.skillLocator || !body.skillLocator.utility) return;

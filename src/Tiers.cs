@@ -71,6 +71,24 @@ namespace MoreQuality
             return values[Highest(counts)];
         }
 
+        // Stacking for quality values: the best copy gives its full value, and every other quality copy adds half
+        // of its own tier's value, so a second quality item is never useless.
+        public static float Stack(ItemQualityCounts counts, T4 values)
+        {
+            var best = Highest(counts);
+            if (best == QualityTier.None) return 0f;
+            return values[best] + 0.5f * (Sum(counts, values) - values[best]);
+        }
+
+        // Same, for multipliers (x1.5, x2...): the extra copies stack the part above x1.
+        public static float StackMultiplier(ItemQualityCounts counts, T4 multipliers)
+        {
+            var best = Highest(counts);
+            if (best == QualityTier.None) return 1f;
+            var others = Sum(counts, multipliers) - multipliers[best] - (counts.TotalQualityCount - 1);
+            return multipliers[best] + 0.5f * others;
+        }
+
         // "X (+Y per stack)": the first copy of your best quality gives X, every other copy adds its own Y.
         public static float Stacked(ItemQualityCounts counts, T4 first, T4 perStack)
         {

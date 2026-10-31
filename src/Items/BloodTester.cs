@@ -5,14 +5,14 @@ using SS2;
 
 namespace MoreQuality.Items
 {
-    // Each Blood Tester trigger also grants "Rush": more stats the higher the quality.
+    // Each Blood Tester trigger also grants "Rush": movement speed, attack speed, damage and armor.
     internal static class BloodTester
     {
-        private static readonly T4 Duration = new T4(4f, 5f, 6f, 8f);
-        private static readonly T4 MoveSpeed = new T4(0.2f, 0.3f, 0.4f, 0.5f);
-        private static readonly T4 AttackSpeed = new T4(0f, 0.2f, 0.3f, 0.4f);
-        private static readonly T4 Damage = new T4(0f, 0f, 0.2f, 0.3f);
-        private static readonly T4 Armor = new T4(0f, 0f, 0f, 30f);
+        private static readonly T4 Duration = new T4(3f, 4f, 6f, 10f);
+        private static readonly T4 MoveSpeed = new T4(0.15f, 0.3f, 0.6f, 1.2f);
+        private static readonly T4 AttackSpeed = new T4(0.1f, 0.2f, 0.5f, 1f);
+        private static readonly T4 Damage = new T4(0.05f, 0.1f, 0.25f, 0.5f);
+        private static readonly T4 Armor = new T4(5f, 10f, 25f, 50f);
 
         internal static void Init()
         {
@@ -35,10 +35,10 @@ namespace MoreQuality.Items
         {
             if (!body.HasBuff(CustomBuffs.BloodRush)) return;
             var counts = Q.Counts(body, SS2Content.Items.BloodTester);
-            args.moveSpeedMultAdd += Q.AtHighest(counts, MoveSpeed);
-            args.attackSpeedMultAdd += Q.AtHighest(counts, AttackSpeed);
-            args.damageMultAdd += Q.AtHighest(counts, Damage);
-            args.armorAdd += Q.AtHighest(counts, Armor);
+            args.moveSpeedMultAdd += Q.Stack(counts, MoveSpeed);
+            args.attackSpeedMultAdd += Q.Stack(counts, AttackSpeed);
+            args.damageMultAdd += Q.Stack(counts, Damage);
+            args.armorAdd += Q.Stack(counts, Armor);
         }
     }
 }

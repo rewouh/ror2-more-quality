@@ -13,8 +13,8 @@ namespace MoreQuality.Items
     // nearest enemy. Those can chain.
     internal static class ShackledLamp
     {
-        private static readonly T4 UsesPerShot = new T4(4f, 4f, 3f, 2f);
-        private static readonly T4 Chance = new T4(15f, 25f, 40f, 60f);
+        private static readonly T4 UsesPerShot = new T4(4f, 3f, 2f, 1f);
+        private static readonly T4 Chance = new T4(10f, 20f, 50f, 90f);
         private static readonly T4 ChancePerStack = new T4(10f, 10f, 10f, 10f);
         private const float Range = 40f;
 

@@ -7,11 +7,12 @@ namespace MoreQuality.Items
 {
     // The speakers' burst launches enemies into the air; they take fall damage when they land.
     // Monsters normally ignore fall damage, so the landing hit is applied here with the game's
-    // formula (overspeed / 60 x max health), credited to you. Legendary doubles it. Bosses take at
+    // formula (overspeed / 60 x max health), credited to you, multiplied by quality. Bosses take at
     // most 10% of their max health per landing. Flying enemies can't fall, so they take the hit at once.
     internal static class LowQualitySpeakers
     {
-        private static readonly T4 Height = new T4(10f, 20f, 35f, 55f);
+        private static readonly T4 Height = new T4(10f, 20f, 40f, 70f);
+        private static readonly T4 FallMultiplier = new T4(1f, 1.5f, 2.5f, 4f);
         private const float BossCap = 0.1f;
 
         private sealed class Launched : MonoBehaviour
@@ -80,7 +81,7 @@ namespace MoreQuality.Items
         {
             var overspeed = Mathf.Max(0f, speed - 20f);
             if (overspeed <= 0f || !victim.healthComponent) return;
-            var fraction = overspeed / 60f * (tier == QualityTier.Legendary ? 2f : 1f);
+            var fraction = overspeed / 60f * FallMultiplier[tier];
             if (victim.isBoss) fraction = Mathf.Min(fraction, BossCap);
             victim.healthComponent.TakeDamage(new DamageInfo
             {

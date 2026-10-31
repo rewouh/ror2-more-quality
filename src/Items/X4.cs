@@ -6,12 +6,13 @@ using UnityEngine;
 
 namespace MoreQuality.Items
 {
-    // Using your secondary can grant a random positive effect for 5s (no attack speed in the pool).
-    // Legendary always grants two different ones.
+    // Using your secondary can grant a random positive effect for 5s (no attack speed in the pool), and
+    // sometimes a second, different one.
     internal static class X4
     {
-        private static readonly T4 Chance = new T4(25f, 40f, 60f, 100f);
+        private static readonly T4 Chance = new T4(20f, 40f, 70f, 100f);
         private static readonly T4 ChancePerStack = new T4(10f, 10f, 10f, 10f);
+        private static readonly T4 SecondChance = new T4(10f, 20f, 50f, 100f);
         private const float Duration = 5f;
 
         internal static void Init()
@@ -26,7 +27,8 @@ namespace MoreQuality.Items
             var counts = Q.Counts(body, SS2Content.Items.X4);
             if (!Q.Any(counts)) return;
 
-            var effects = Q.Highest(counts) == QualityTier.Legendary ? 2 : Util.CheckRoll(Q.Stacked(counts, Chance, ChancePerStack)) ? 1 : 0;
+            if (!Util.CheckRoll(Q.Stacked(counts, Chance, ChancePerStack))) return;
+            var effects = Util.CheckRoll(Q.Stack(counts, SecondChance)) ? 2 : 1;
             foreach (var effect in Enumerable.Range(0, 6).OrderBy(_ => Random.value).Take(effects)) Grant(body, effect);
         }
 

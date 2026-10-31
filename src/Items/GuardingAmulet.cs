@@ -4,11 +4,11 @@ using SS2;
 
 namespace MoreQuality.Items
 {
-    // Hits the amulet reduces from behind also grant barrier (a share of the whole hit); Legendary also
-    // stuns the attacker.
+    // Hits the amulet reduces from behind also grant barrier (a share of the whole hit) and stun the attacker.
     internal static class GuardingAmulet
     {
-        private static readonly T4 Barrier = new T4(0.1f, 0.2f, 0.35f, 0.5f);
+        private static readonly T4 Barrier = new T4(0.1f, 0.2f, 0.5f, 1f);
+        private static readonly T4 Stun = new T4(0.5f, 1f, 2f, 4f);
 
         internal static void Init()
         {
@@ -28,7 +28,7 @@ namespace MoreQuality.Items
             var counts = Q.Counts(body, SS2Content.Items.GuardingAmulet);
             if (!Q.Any(counts)) return;
             body.healthComponent.AddBarrier(__state * Q.Sum(counts, Barrier));
-            if (Q.Highest(counts) == QualityTier.Legendary && damageInfo.attacker) SetStateOnHurt.SetStunOnObject(damageInfo.attacker, 1f);
+            if (damageInfo.attacker) SetStateOnHurt.SetStunOnObject(damageInfo.attacker, Q.Stack(counts, Stun));
         }
     }
 }
