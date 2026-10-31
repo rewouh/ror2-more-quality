@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.3.1
+
+- [Risk of Options](https://thunderstore.io/c/riskofrain2/p/Rune580/Risk_Of_Options/) support (optional): MoreQuality has its own settings page.
+- New: **Quality Hand of Death**. A Hallowed Shrine's Hand of Death has a 10% chance (configurable) to be white and glowing; every hex it drops gets its own random quality (40% Uncommon, 30% Rare, 20% Epic, 10% Legendary).
+
 ## 0.3.0
 
 - **Every quality tier now has the same effects**; nothing is reserved for Epic or Legendary any more. Values climb steeply (roughly x1 / x2 / x5 / x10), so Legendary is a bit overpowered on purpose.

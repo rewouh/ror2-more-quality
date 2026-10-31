@@ -1,7 +1,7 @@
 MOREQUALITY: DESIGN DOCUMENT (v8)
 =================================
 Mod versions: Starstorm2 0.6.46, Quality 0.8.5, Risk of Rain 2 with Hallowed Concepts
-Mod release:  0.3.0 (Thunderstore: Rewouh-MoreQuality), beta
+Mod release:  0.3.1 (Thunderstore: Rewouh-MoreQuality), beta
 
 The mod adds Quality tiers to items Quality doesn't cover itself, in two independent parts:
 
@@ -385,6 +385,13 @@ GUARANTEES one choice of its quality in the Hallowed Potential.
 So carrying a Legendary Hex for a few stages guarantees a Legendary choice when you cleanse
 it. (With the Artifact of Command the shrine drops items directly; not covered.)
 
+QUALITY HAND OF DEATH
+  Each Hallowed Shrine's Hand of Death has a 10% chance (config: "Quality Hand of Death
+  chance") to be a quality hand: painted white, with a soft light, a white halo and motes in
+  the four quality colours. Every hex it drops gets its own random quality: 40% Uncommon,
+  30% Rare, 20% Epic, 10% Legendary. It's the high-risk option: worse hexes now, guaranteed
+  quality choices when they're cleansed.
+
 Quality stops item costs (printers, scrappers) from spending quality items. The shrine pays
 with hexes through that same cost, so MoreQuality gives the hex cost its own check and
 payment that include quality hexes; other item costs keep Quality's rule.
@@ -562,3 +569,4 @@ CHANGELOG OF THIS DOCUMENT
       models, effects, status marks, metronome tick sound); Insecticide's swarm replaced by
       toxic clouds; Hunter's Sigil much stronger; Man-o'-War summons a real Jellyfish (fixes
       the red orb); Hex of Leaping push and Jet Boots fixed (a hook error broke jumping)
+  v9  Quality Hand of Death: a white Hand of Death whose hexes each get a random quality

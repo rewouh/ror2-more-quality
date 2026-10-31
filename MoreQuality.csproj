@@ -37,6 +37,7 @@
     <Reference Include="libs\Starstorm2.dll" Private="false" />
     <Reference Include="libs\MSU.Runtime.dll" Private="false" />
     <Reference Include="libs\RoR2BepInExPack.dll" Private="false" />
+    <Reference Include="libs\RiskOfOptions.dll" Private="false" />
   </ItemGroup>
 
   <ItemGroup>
@@ -47,7 +48,7 @@
   </ItemGroup>
 
   <Target Name="CheckLibs" BeforeTargets="ResolveAssemblyReferences">
-    <Error Condition="!Exists('libs\Starstorm2.dll')" Text="libs/ is empty. Run: python tools/fetch_deps.py" />
+    <Error Condition="!Exists('libs\Starstorm2.dll') Or !Exists('libs\RiskOfOptions.dll')" Text="libs/ is missing DLLs. Run: python tools/fetch_deps.py" />
   </Target>
 
   <!-- The NuGet game references make private members look public; fail if the DLL uses one. See tools/AccessCheck. -->
@@ -61,6 +62,7 @@
     </ItemGroup>
     <Copy SourceFiles="$(TargetPath)" DestinationFolder="$(DeployDir)" />
     <Copy SourceFiles="@(LangFiles)" DestinationFolder="$(DeployDir)\lang\%(RecursiveDir)" />
+    <Copy SourceFiles="icon.png" DestinationFolder="$(DeployDir)" />
     <Message Text="Deployed to $(DeployDir)" Importance="high" />
   </Target>
 

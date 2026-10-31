@@ -83,6 +83,7 @@ Values are Uncommon / Rare / Epic / Legendary.
 
 - **Hallowed items** get quality variants with stronger effects and new twists.
 - **Hexes** get quality variants that are *worse*. The payoff: every quality Hex drained by a Hallowed Shrine's Hand of Life **guarantees a choice of its quality** among the items it offers. The best tiers go to the best groups first, one per group, so you can actually take them.
+- **Quality Hand of Death:** a Hallowed Shrine's Hand of Death has a 10% chance (configurable) to be a white, glowing quality hand. Every hex it drops gets its own random quality (40% Uncommon, 30% Rare, 20% Epic, 10% Legendary): a gamble, since each one guarantees a choice of its quality when you cleanse it.
 - Quality versions only come from the DLC's own sources (Concept Reliquaries, the Hand of Death, Hallowed Shrines, Compulsions, trials), through Quality's normal quality chance. Never from quality chests or printers.
 
 ### Hallowed items
@@ -128,6 +129,7 @@ Not covered: N'tormat Pages, the DLC's boss items and equipment, and the Seed of
 
 - **Multiplayer:** every player needs the mod. Effects run on the host.
 - **Config:** rewritten descriptions use Starstorm 2's default values. If you changed Starstorm 2's item config, the effects still use your values, but some descriptions will show the defaults.
+- **Settings:** the Quality Hand of Death chance is in the config file, and in-game with [Risk of Options](https://thunderstore.io/c/riskofrain2/p/Rune580/Risk_Of_Options/) (optional).
 - Buff tooltips have proper names and descriptions with [LookingGlass](https://thunderstore.io/c/riskofrain2/p/DropPod/LookingGlass/).
 
 ## Known issues

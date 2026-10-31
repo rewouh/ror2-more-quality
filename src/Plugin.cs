@@ -15,23 +15,29 @@ namespace MoreQuality
     [BepInDependency(R2API.RecalculateStatsAPI.PluginGUID)]
     [BepInDependency(R2API.PrefabAPI.PluginGUID)]
     [BepInDependency(R2API.ContentManagement.R2APIContentManager.PluginGUID)]
+    [BepInDependency(RiskOfOptionsCompat.GUID, BepInDependency.DependencyFlags.SoftDependency)]
     public sealed class MoreQualityPlugin : BaseUnityPlugin
     {
         public const string GUID = "com.rewouh.MoreQuality";
         public const string Name = "MoreQuality";
-        public const string Version = "0.3.0";
+        public const string Version = "0.3.1";
 
         internal static ManualLogSource Log;
         internal static Harmony Harmony;
+        internal static BepInEx.Configuration.ConfigEntry<float> QualityHandChance;
 
         private void Awake()
         {
             Log = Logger;
             Harmony = new Harmony(GUID);
+            QualityHandChance = Config.Bind("Hallowed Concepts", "Quality Hand of Death chance", 10f,
+                "% chance for a Hallowed Shrine's Hand of Death to be a white, quality one: every hex it drops gets a random quality.");
 
             var langFolder = System.IO.Path.Combine(System.IO.Path.GetDirectoryName(Info.Location), "lang");
             if (Directory.Exists(langFolder)) Language.collectLanguageRootFolders += folders => folders.Add(langFolder);
             else Log.LogError("Language folder missing: " + langFolder);
+
+            if (BepInEx.Bootstrap.Chainloader.PluginInfos.ContainsKey(RiskOfOptionsCompat.GUID)) RiskOfOptionsCompat.Register(Info.Location);
 
             Starstorm.HoldBackQuality();
             QualityContent.Register();

@@ -20,14 +20,20 @@ NEEDED = {
     "RiskofThunder-RoR2BepInExPack": "RoR2BepInExPack.dll",
 }
 
+# Optional (soft) dependencies: not in thunderstore.toml, so their version is pinned here.
+OPTIONAL = {
+    "Rune580-Risk_Of_Options": ("2.8.6", "RiskOfOptions.dll"),
+}
+
 
 def main():
     with open(os.path.join(ROOT, "thunderstore.toml"), "rb") as f:
         dependencies = tomllib.load(f)["package"]["dependencies"]
     libs = os.path.join(ROOT, "libs")
     os.makedirs(libs, exist_ok=True)
-    for package, dll in NEEDED.items():
-        version = dependencies[package]
+    wanted = [(package, dependencies[package], dll) for package, dll in NEEDED.items()]
+    wanted += [(package, version, dll) for package, (version, dll) in OPTIONAL.items()]
+    for package, version, dll in wanted:
         team, name = package.split("-", 1)
         url = "https://thunderstore.io/package/download/{}/{}/{}/".format(team, name, version)
         request = urllib.request.Request(url, headers={"User-Agent": "MoreQuality-build"})   # the default one is refused
