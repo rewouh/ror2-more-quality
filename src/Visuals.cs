@@ -287,8 +287,12 @@ namespace MoreQuality
             component.parentToReferencedTransform = follow;
             component.positionAtReferencedTransform = follow;
             var vfx = root.AddComponent<VFXAttributes>();
+            // Every live effect with VFXAttributes counts against the game's shared VFX budget, and past a
+            // threshold the game skips other effects (anyone's explosions, impacts...). Ours are always shown
+            // but cost the minimum, so they never crowd out the rest.
             vfx.vfxPriority = VFXAttributes.VFXPriority.Always;
-            vfx.vfxIntensity = VFXAttributes.VFXIntensity.Medium;
+            vfx.vfxIntensity = VFXAttributes.VFXIntensity.Low;
+            vfx.DoNotPool = true;   // our components set themselves up in Start(), which a reused instance skips
             root.AddComponent<DestroyOnTimer>().duration = lifetime;
             var prefab = PrefabAPI.InstantiateClone(root, name, false);
             UnityEngine.Object.Destroy(root);

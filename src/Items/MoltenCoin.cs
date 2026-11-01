@@ -22,6 +22,9 @@ namespace MoreQuality.Items
 
         // The Molten buff's stack count is the aura's radius in metres, so every game can draw it.
         private static readonly Dictionary<CharacterBody, float> burning = new Dictionary<CharacterBody, float>();
+        // When each enemy last showed the ignite flames: at most once every IgniteFxInterval, to keep effects light.
+        private static readonly Dictionary<CharacterBody, float> lastFlames = new Dictionary<CharacterBody, float>();
+        private const float IgniteFxInterval = 2f;
 
         internal static void Init()
         {
@@ -29,7 +32,7 @@ namespace MoreQuality.Items
             Hooks.Patch(typeof(MoneyPickup), "OnTriggerStay", typeof(MoltenCoin), prefix: nameof(BeforePickup), postfix: nameof(AfterPickup));
             GlobalEventManager.onCharacterDeathGlobal += OnDeath;
             Ticker.Every(0.5f, Aura);
-            Run.onRunStartGlobal += _ => burning.Clear();
+            Run.onRunStartGlobal += _ => { burning.Clear(); lastFlames.Clear(); };
         }
 
         internal static float AuraRadiusFor(CharacterBody body)
@@ -97,6 +100,7 @@ namespace MoreQuality.Items
             {
                 var body = entry.Key;
                 if (!body || !body.HasBuff(CustomBuffs.Molten)) { burning.Remove(body); continue; }
+                foreach (var gone in lastFlames.Keys.Where(b => !b).ToList()) lastFlames.Remove(gone);
                 foreach (var enemy in Enemies.Near(body.corePosition, AuraRadiusFor(body), body.teamComponent.teamIndex))
                 {
                     var info = new InflictDotInfo
@@ -108,6 +112,9 @@ namespace MoreQuality.Items
                         damageMultiplier = entry.Value
                     };
                     DotController.InflictDot(ref info);
+                    float last;
+                    if (lastFlames.TryGetValue(enemy.body, out last) && Time.fixedTime - last < IgniteFxInterval) continue;
+                    lastFlames[enemy.body] = Time.fixedTime;
                     Visuals.Spawn(Fx.Ignite, enemy.body.corePosition, enemy.body.radius);
                 }
             }

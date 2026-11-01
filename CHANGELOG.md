@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.3.2
+
+- Fixed: some quality item names showed as raw tokens (e.g. SS2_ITEM_ARMEDBACKPACK_NAME) when Starstorm 2 loaded its text after Quality built the names.
+- Fixed: MoreQuality's effects used up the game's shared effect budget (Molten's flames especially), so the game could skip other effects, like explosions from enemies or other mods. They now cost the minimum, and Molten shows its flames less often.
+- Fixed: MoreQuality's own effects could reuse a previous size, light or duration when the game recycled them.
+
 ## 0.3.1
 
 - [Risk of Options](https://thunderstore.io/c/riskofrain2/p/Rune580/Risk_Of_Options/) support (optional): MoreQuality has its own settings page.
