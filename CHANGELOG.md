@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.3.3
+
+- Mod page wording.
+
 ## 0.3.2
 
 - Fixed: some quality item names showed as raw tokens (e.g. SS2_ITEM_ARMEDBACKPACK_NAME) when Starstorm 2 loaded its text after Quality built the names.

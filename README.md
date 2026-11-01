@@ -2,7 +2,7 @@
 
 > **Beta, in active development.** Expect balance changes and the occasional bug; reports are very welcome (see Feedback below).
 
-Adds [Quality](https://thunderstore.io/c/riskofrain2/p/Goorakh/Quality/) variants to items Quality doesn't cover. Every quality version keeps the item's normal effect and adds new mechanics on top. All four tiers (Uncommon, Rare, Epic, Legendary) have the same effects; the values climb steeply (roughly x1 / x2 / x5 / x10), so Legendary is a bit overpowered on purpose. Extra quality copies stack: each one adds half of its own tier's value.
+Adds [Quality](https://thunderstore.io/c/riskofrain2/p/Goorakh/Quality/) variants to items Quality doesn't cover. Every quality version keeps the item's normal effect and adds new mechanics on top.
 
 The mod has two separate parts:
 
