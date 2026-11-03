@@ -57,6 +57,7 @@ namespace MoreQuality.Items
                     trail = Object.Instantiate(LegacyResourcesAPI.Load<GameObject>("Prefabs/FireTrail"), body.gameObject.transform).GetComponent<DamageTrail>();
                     trail.gameObject.transform.position = body.footPosition;
                     trail.owner = body.gameObject;
+                    trail.gameObject.name = Sources.NameFor(SS2Content.Items.SwiftSkateboard);   // the trail is its damage's inflictor
                     trail.radius *= body.radius * Q.AtHighest(counts, TrailWidth);
                     trails.Add(body, trail);
                 }

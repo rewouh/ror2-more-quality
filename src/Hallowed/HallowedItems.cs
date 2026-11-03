@@ -455,7 +455,7 @@ namespace MoreQuality.Hallowed
                 new BlastAttack
                 {
                     attacker = body.gameObject,
-                    inflictor = body.gameObject,
+                    inflictor = Sources.Of(DLC4Content.Items.SanguineChalice),
                     teamIndex = body.teamComponent.teamIndex,
                     position = body.corePosition,
                     radius = radius,
@@ -533,6 +533,7 @@ namespace MoreQuality.Hallowed
         {
             if (!source) return null;
             var clone = PrefabAPI.InstantiateClone(source, name, true);
+            Sources.Name(clone.name, DLC4Content.Items.GhostBlades);
             clone.transform.localScale *= size;
             var controller = clone.GetComponent<ProjectileController>();
             if (controller && controller.ghostPrefab)
@@ -702,7 +703,7 @@ namespace MoreQuality.Hallowed
             new BlastAttack
             {
                 attacker = owner.gameObject,
-                inflictor = owner.gameObject,
+                inflictor = Sources.Of(DLC4Content.Items.VengefulSpirit),
                 teamIndex = owner.teamComponent.teamIndex,
                 position = position,
                 radius = radius,
@@ -820,6 +821,7 @@ namespace MoreQuality.Hallowed
                     other.TakeDamage(new DamageInfo
                     {
                         attacker = link.Owner.gameObject,
+                        inflictor = Sources.Of(DLC4Content.Items.VileCenser),
                         damage = report.damageDealt * Q.Stack(Q.Counts(link.Owner, DLC4Content.Items.VileCenser), Shared),
                         position = other.body ? other.body.corePosition : other.transform.position,
                         procCoefficient = 0f,

@@ -47,7 +47,7 @@ namespace MoreQuality.Items
             new BlastAttack
             {
                 attacker = body.gameObject,
-                inflictor = body.gameObject,
+                inflictor = Sources.Of(SS2Content.Items.UraniumHorseshoe),
                 teamIndex = body.teamComponent.teamIndex,
                 position = body.footPosition,
                 radius = StompRadius,

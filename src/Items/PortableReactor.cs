@@ -62,7 +62,7 @@ namespace MoreQuality.Items
             new BlastAttack
             {
                 attacker = body.gameObject,
-                inflictor = body.gameObject,
+                inflictor = Sources.Of(SS2Content.Items.PortableReactor),
                 teamIndex = body.teamComponent.teamIndex,
                 position = body.corePosition,
                 radius = radius,

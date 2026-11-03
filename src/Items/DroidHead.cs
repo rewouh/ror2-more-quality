@@ -42,7 +42,7 @@ namespace MoreQuality.Items
             new BlastAttack
             {
                 attacker = owner.gameObject,
-                inflictor = drone.gameObject,
+                inflictor = Sources.Of(SS2Content.Items.DroidHead),
                 teamIndex = owner.teamComponent.teamIndex,
                 position = drone.corePosition,
                 radius = radius,

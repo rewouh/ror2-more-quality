@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using ItemQualities;
+using R2API;
 using RoR2;
 
 namespace MoreQuality
@@ -8,9 +9,11 @@ namespace MoreQuality
     // item's own text. Doing it at display time (rather than through Quality's one-off "{0}" copy at
     // startup) guarantees Starstorm2 has already filled its numbers in from its config.
     //
-    // Names too: Quality builds each quality name once, at startup, from the base item's name. When
-    // Starstorm2's strings aren't loaded yet at that moment, the raw token ("SS2_ITEM_..._NAME") gets
-    // baked in, so a name still containing its base token is rebuilt here from Quality's own format.
+    // Names too: Quality builds each quality name once, at startup, from the base item's name, and registers
+    // it with R2API. When Starstorm2's strings aren't loaded yet at that moment, the raw token
+    // ("SS2_ITEM_..._NAME") gets baked in. R2API answers those lookups itself, before the game (and our
+    // postfix) is reached, so a broken name is replaced with an R2API overlay, which wins over Quality's.
+    // This is redone whenever the strings may have changed: after loading, at each run start, on a language change.
     internal static class BaseText
     {
         private const string Marker = "[[BASE]]";
@@ -20,7 +23,9 @@ namespace MoreQuality
 
         public static void Register()
         {
-            RoR2Application.onLoad += MapTokens;
+            RoR2Application.onLoad += () => { MapTokens(); RepairNames(); };
+            Run.onRunStartGlobal += _ => RepairNames();
+            Language.onCurrentLanguageChanged += RepairNames;
             Hooks.Patch(typeof(Language), nameof(Language.GetLocalizedStringByToken), typeof(BaseText), postfix: nameof(Substitute));
         }
 
@@ -67,15 +72,25 @@ namespace MoreQuality
                 names[token] = new NameSource { BaseToken = baseToken, ModifierToken = modifierToken };
         }
 
+        private static void RepairNames()
+        {
+            var language = Language.currentLanguage;
+            if (language == null) return;
+            var repaired = 0;
+            foreach (var entry in names)
+            {
+                var name = language.GetLocalizedStringByToken(entry.Key);
+                if (name == null || !name.Contains(entry.Value.BaseToken)) continue;   // fine already
+                var baseName = language.GetLocalizedStringByToken(entry.Value.BaseToken);
+                if (baseName == entry.Value.BaseToken) continue;   // base text not loaded yet: try again later
+                LanguageAPI.AddOverlay(entry.Key, language.GetLocalizedFormattedStringByToken(entry.Value.ModifierToken, baseName), language.name);
+                repaired++;
+            }
+            if (repaired > 0) MoreQualityPlugin.Log.LogInfo("Repaired " + repaired + " quality item names for " + language.name);
+        }
+
         private static void Substitute(Language __instance, string token, ref string __result)
         {
-            NameSource name;
-            if (__result != null && names.TryGetValue(token, out name) && __result.Contains(name.BaseToken))
-            {
-                var baseName = __instance.GetLocalizedStringByToken(name.BaseToken);
-                if (baseName != name.BaseToken) __result = __instance.GetLocalizedFormattedStringByToken(name.ModifierToken, baseName);
-                return;
-            }
             string baseToken;
             if (__result == null || !__result.StartsWith(Marker) || !baseTokens.TryGetValue(token, out baseToken)) return;
             __result = __instance.GetLocalizedStringByToken(baseToken) + __result.Substring(Marker.Length);

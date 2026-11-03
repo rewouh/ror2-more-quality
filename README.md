@@ -130,6 +130,7 @@ Not covered: N'tormat Pages, the DLC's boss items and equipment, and the Seed of
 - **Multiplayer:** every player needs the mod. Effects run on the host.
 - **Config:** rewritten descriptions use Starstorm 2's default values. If you changed Starstorm 2's item config, the effects still use your values, but some descriptions will show the defaults.
 - **Settings:** the Quality Hand of Death chance is in the config file, and in-game with [Risk of Options](https://thunderstore.io/c/riskofrain2/p/Rune580/Risk_Of_Options/) (optional).
+- **DpsMeter:** damage from quality effects is credited to their item in [DpsMeter](https://thunderstore.io/c/riskofrain2/p/noctilucentgames/DpsMeter/)'s breakdown.
 - Buff tooltips have proper names and descriptions with [LookingGlass](https://thunderstore.io/c/riskofrain2/p/DropPod/LookingGlass/).
 
 ## Known issues

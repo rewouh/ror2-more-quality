@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.3.4
+
+- Fixed for real: quality item names showing raw tokens (SS2_ITEM_..._NAME), which still happened for players who weren't the host. The names are now repaired after loading, at every run start and on a language change.
+- DpsMeter support: damage from MoreQuality effects is now credited to the quality item (Meltdown, toxic clouds, voodoo dolls, blood wave, jellyfish...) instead of "Unattributed".
+
 ## 0.3.3
 
 - Mod page wording.

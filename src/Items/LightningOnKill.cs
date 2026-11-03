@@ -124,7 +124,7 @@ namespace MoreQuality.Items
             new BlastAttack
             {
                 attacker = jelly.Owner ? jelly.Owner.gameObject : null,
-                inflictor = jelly.Owner ? jelly.Owner.gameObject : null,
+                inflictor = Sources.Of(SS2Content.Items.LightningOnKill),
                 teamIndex = jelly.Team,
                 position = position,
                 radius = jelly.Radius,

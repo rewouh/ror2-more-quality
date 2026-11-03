@@ -85,7 +85,7 @@ namespace MoreQuality.Items
                 new BlastAttack
                 {
                     attacker = cloud.Owner.gameObject,
-                    inflictor = cloud.Owner.gameObject,
+                    inflictor = Sources.Of(SS2Content.Items.Insecticide),
                     teamIndex = cloud.Team,
                     position = cloud.Position,
                     radius = cloud.Radius,

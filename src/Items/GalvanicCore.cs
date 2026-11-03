@@ -75,6 +75,7 @@ namespace MoreQuality.Items
                     origin = razed.corePosition,
                     target = next.body.mainHurtBox,
                     attacker = owner.gameObject,
+                    inflictor = Sources.Of(SS2Content.Items.GalvanicCore),
                     teamIndex = owner.teamComponent.teamIndex,
                     damageValue = owner.damage * Q.Stack(Q.Counts(owner, SS2Content.Items.GalvanicCore), ArcDamage),
                     isCrit = owner.RollCrit(),

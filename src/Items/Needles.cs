@@ -94,6 +94,7 @@ namespace MoreQuality.Items
                     doll.healthComponent.TakeDamage(new DamageInfo
                     {
                         attacker = report.attacker,
+                        inflictor = Sources.Of(SS2Content.Items.Needles),
                         damage = report.damageDealt * share,
                         position = doll.corePosition,
                         procCoefficient = 0f,

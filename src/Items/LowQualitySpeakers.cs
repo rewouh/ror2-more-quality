@@ -86,7 +86,7 @@ namespace MoreQuality.Items
             victim.healthComponent.TakeDamage(new DamageInfo
             {
                 attacker = owner.gameObject,
-                inflictor = owner.gameObject,
+                inflictor = Sources.Of(SS2Content.Items.LowQualitySpeakers),
                 damage = fraction * victim.maxHealth,
                 position = victim.footPosition,
                 procCoefficient = 0f,

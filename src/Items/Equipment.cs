@@ -70,7 +70,7 @@ namespace MoreQuality.Items
             var result = new BlastAttack
             {
                 attacker = body.gameObject,
-                inflictor = body.gameObject,
+                inflictor = Sources.Of(SS2Content.Equipments.BackThruster),
                 teamIndex = body.teamComponent.teamIndex,
                 position = body.corePosition + body.characterMotor.velocity.normalized * body.radius,
                 radius = body.radius + 3f,
@@ -161,7 +161,7 @@ namespace MoreQuality.Items
             var result = new BlastAttack
             {
                 attacker = body.gameObject,
-                inflictor = banner,
+                inflictor = Sources.Of(SS2Content.Equipments.GreaterWarbanner),
                 teamIndex = body.teamComponent.teamIndex,
                 position = banner.transform.position,
                 radius = SlamRadius[tier],

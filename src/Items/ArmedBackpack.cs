@@ -30,6 +30,7 @@ namespace MoreQuality.Items
             for (var tier = QualityTier.Uncommon; tier <= QualityTier.Legendary; tier++)
             {
                 var prefab = PrefabAPI.InstantiateClone(source, "QualitySS2BackpackMissile" + tier, true);
+                Sources.Name(prefab.name, SS2Content.Items.ArmedBackpack);
                 var controller = prefab.GetComponent<ProjectileController>();
                 if (controller && controller.ghostPrefab)
                 {
