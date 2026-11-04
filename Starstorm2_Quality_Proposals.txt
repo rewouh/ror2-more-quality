@@ -1,7 +1,7 @@
 MOREQUALITY: DESIGN DOCUMENT (v8)
 =================================
 Mod versions: Starstorm2 0.6.46, Quality 0.8.5, Risk of Rain 2 with Hallowed Concepts
-Mod release:  0.4.0 (Thunderstore: Rewouh-MoreQuality), beta
+Mod release:  0.4.2 (Thunderstore: Rewouh-MoreQuality), beta
 
 The mod adds Quality tiers to items Quality doesn't cover itself, in two independent parts:
 
@@ -483,13 +483,17 @@ A quality Hex keeps its normal effect and adds a new, nastier twist that changes
 Its payoff is the cleansing guarantee above (and the Quality Hand of Death).
 
 HEX OF ACCELERATION   Base: ground is slippery; acceleration -40% (+30% per stack).
-  "Gale": a wind sweeps the stage and pushes every player at 3 / 6 / 12 / 20 m/s, turning to a
-  new direction every 20 / 15 / 12 / 8s. Wind streaks show its direction. Enemies aren't pushed.
+  "Gale": every 25-45 / 18-32 / 12-22 / 8-14s (random), a wind zone 16 / 22 / 30 / 40m wide
+  appears where you stand and blows one way for 8 / 10 / 12 / 15s, pushing every player inside it
+  at 4 / 8 / 14 / 22 m/s (streaks and dust show its direction, swirling dust marks its edge).
+  Enemies aren't pushed.
 
 HEX OF BLINDNESS      Base: vision limited to 100m (-50% per stack).
   "Phantoms": every 12 / 9 / 6 / 4s, 1 / 2 / 3 / 5 phantom copies of nearby enemies appear
   around you. They look real but deal no damage, give nothing, and burst into smoke on the
-  first hit (or after 20s). Only you see your phantoms: other players' games hide them.
+  first hit (or after 20s), and whoever pops one gets a random malus (slow, cripple, weaken,
+  no healing or a weakened attack) for 2 / 3 / 5 / 8s. Only you see your phantoms: other players'
+  games hide them.
 
 HEX OF FAMINE         Base: all healing -40% (+40% per stack).
   "Hungry": a hunger bar under your health bar. It empties over 90 / 60 / 40 / 25s. Healing
@@ -606,3 +610,4 @@ CHANGELOG OF THIS DOCUMENT
       Rain reworked into storm clouds; the reaper's swings are random and its robe trails
   v13 wisps faster and immune when they appear; the reaper only appears to swoop in and swing;
       storm clouds built from puffs
+  v14 Gale becomes wind zones dropped where you stand; popping a phantom gives a random malus

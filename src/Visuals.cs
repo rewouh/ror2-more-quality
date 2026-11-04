@@ -526,6 +526,14 @@ namespace MoreQuality
             }
         }
 
+        // Marks a wind zone, so every game can find the zones its player stands in.
+        internal sealed class WindZoneMarker : MonoBehaviour
+        {
+            public static readonly List<WindZoneMarker> All = new List<WindZoneMarker>();
+            private void OnEnable() { All.Add(this); }
+            private void OnDisable() { All.Remove(this); }
+        }
+
         // Lightning inside a cloud: its lights flare up now and then.
         internal sealed class Flicker : MonoBehaviour
         {

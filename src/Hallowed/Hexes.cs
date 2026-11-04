@@ -13,69 +13,112 @@ namespace MoreQuality.Hallowed
     // A quality hex keeps its normal effect and adds a new twist on top. Its payoff is the cleansing
     // bonus (see Cleansing.cs). The other half of the hexes is in HexesWorld.cs.
 
-    // Hex of Acceleration, Gale: a wind sweeps the stage and pushes every player, turning every few seconds.
-    // Movement belongs to each player's own game, so every game pushes its own player; the wind's direction
-    // comes from the shared run clock, so it's the same everywhere.
+    // Hex of Acceleration, Gale: every so often (a random delay, shorter with quality) a wind zone appears where
+    // you stand and stays there for a while, pushing every player inside it one way. The zones are our own
+    // networked objects (their size and direction travel with them); movement belongs to each player's own
+    // game, so every game pushes its own player when they're inside one.
     internal static class HexOfAcceleration
     {
-        private static readonly T4 Push = new T4(3f, 6f, 12f, 20f);       // m/s
-        private static readonly T4 Period = new T4(20f, 15f, 12f, 8f);    // seconds between turns
-        private static GameObject streaks;
+        private static readonly T4 Push = new T4(4f, 8f, 14f, 22f);          // m/s
+        private static readonly T4 Radius = new T4(8f, 11f, 15f, 20f);
+        private static readonly T4 Lifetime = new T4(8f, 10f, 12f, 15f);
+        private static readonly T4 DelayMin = new T4(25f, 18f, 12f, 8f);
+        private static readonly T4 DelayMax = new T4(45f, 32f, 22f, 14f);
+        private const float BuiltRadius = 10f;   // the zone prefab's radius at scale 1
+
+        private struct Zone { public GameObject Object; public float Until; }
+        private static readonly List<Zone> zones = new List<Zone>();
+        private static readonly Dictionary<CharacterBody, float> next = new Dictionary<CharacterBody, float>();
 
         internal static void Init()
         {
+            Ticker.Every(0.5f, Spawn);
             RoR2Application.onFixedUpdate += Blow;
+            Run.onRunStartGlobal += _ => { zones.Clear(); next.Clear(); };
         }
 
+        private static void Spawn()
+        {
+            var now = Time.fixedTime;
+            foreach (var zone in zones.Where(z => !z.Object || z.Until <= now).ToList())
+            {
+                zones.Remove(zone);
+                if (zone.Object) NetworkServer.Destroy(zone.Object);
+            }
+            if (!HexFx.WindZone) return;
+            foreach (var player in PlayerCharacterMasterController.instances)
+            {
+                var body = player && player.master ? player.master.GetBody() : null;
+                var counts = Q.Counts(body, DLC4Content.Items.SlipperyGround);
+                if (!Q.Any(counts)) { if (body) next.Remove(body); continue; }
+                float due;
+                if (!next.TryGetValue(body, out due)) { next[body] = now + Delay(counts); continue; }
+                if (now < due) continue;
+                next[body] = now + Delay(counts);
+
+                var position = body.footPosition;
+                RaycastHit hit;
+                if (Physics.Raycast(body.corePosition, Vector3.down, out hit, 30f, LayerIndex.world.mask)) position = hit.point;
+                var zone = Object.Instantiate(HexFx.WindZone, position, Quaternion.Euler(0f, Random.Range(0f, 360f), 0f));
+                NetworkServer.Spawn(zone);
+                Decor.Decorate(zone, Q.Stack(counts, Radius) / BuiltRadius, null);
+                zones.Add(new Zone { Object = zone, Until = now + Q.AtHighest(counts, Lifetime) });
+            }
+        }
+
+        private static float Delay(ItemQualityCounts counts)
+        {
+            return Random.Range(Q.AtHighest(counts, DelayMin), Q.AtHighest(counts, DelayMax));
+        }
+
+        // On every game: push this game's own players while they stand in a zone.
         private static void Blow()
         {
-            var counts = Run.instance ? Dlc.TeamBest(DLC4Content.Items.SlipperyGround) : ItemQualityCounts.zero;
-            if (!Q.Any(counts))
-            {
-                if (streaks) Object.Destroy(streaks);
-                return;
-            }
-            var period = Q.AtHighest(counts, Period);
-            var turn = Mathf.Floor(Run.instance.GetRunStopwatch() / period);
-            var angle = Mathf.Repeat(Mathf.Sin(turn * 12.9898f + 78.233f) * 43758.5453f, 1f) * 360f;
-            var direction = Quaternion.Euler(0f, angle, 0f) * Vector3.forward;
-            var push = direction * Q.Stack(counts, Push) * Time.fixedDeltaTime;
-
-            CharacterBody local = null;
+            if (!Run.instance || Visuals.WindZoneMarker.All.Count == 0) return;
+            var strength = Q.Stack(Dlc.TeamBest(DLC4Content.Items.SlipperyGround), Push);
+            if (strength <= 0f) return;
             foreach (var user in LocalUserManager.readOnlyLocalUsersList)
             {
                 var body = user.cachedBody;
                 if (!body || !body.hasEffectiveAuthority || !body.characterMotor) continue;
-                body.characterMotor.rootMotion += push;
-                local = body;
+                foreach (var zone in Visuals.WindZoneMarker.All)
+                {
+                    if (!zone) continue;
+                    var radius = BuiltRadius * zone.transform.lossyScale.x;
+                    var offset = body.footPosition - zone.transform.position;
+                    if (offset.x * offset.x + offset.z * offset.z > radius * radius || Mathf.Abs(offset.y) > 12f) continue;
+                    body.characterMotor.rootMotion += zone.transform.forward * strength * Time.fixedDeltaTime;
+                }
             }
-
-            if (!local) return;
-            if (!streaks && HexFx.GaleStreaks) streaks = Object.Instantiate(HexFx.GaleStreaks);
-            if (!streaks) return;
-            streaks.transform.position = local.corePosition - direction * 12f;
-            streaks.transform.rotation = Quaternion.Slerp(streaks.transform.rotation, Quaternion.LookRotation(direction), 0.1f);
         }
     }
 
     // Hex of Blindness, Phantoms: harmless illusions of nearby enemies keep appearing around you. They deal
-    // no damage, give nothing, burst into smoke when hit, and fade after a while. Only you can see yours:
+    // no damage and give nothing; hitting one pops it into smoke and gives whoever hit it a random malus for a
+    // few seconds. They fade after a while. Only you can see yours:
     // every other player's game hides them (see Decor).
     internal static class HexOfBlindness
     {
         private static readonly T4 Interval = new T4(12f, 9f, 6f, 4f);
         private static readonly T4 Count = new T4(1f, 2f, 3f, 5f);
+        private static readonly T4 CurseTime = new T4(2f, 3f, 5f, 8f);   // the malus for popping one
         private const float Lifetime = 20f;
+
+        private static readonly BuffDef[] Curses =
+        {
+            RoR2Content.Buffs.Slow50, RoR2Content.Buffs.Cripple, RoR2Content.Buffs.Weak, RoR2Content.Buffs.HealingDisabled, RoR2Content.Buffs.BeetleJuice
+        };
         private const float SearchRange = 40f;
 
         private static readonly Dictionary<CharacterBody, float> next = new Dictionary<CharacterBody, float>();
         private static readonly Dictionary<CharacterMaster, float> phantoms = new Dictionary<CharacterMaster, float>();
+        private static readonly Dictionary<CharacterMaster, float> curseTime = new Dictionary<CharacterMaster, float>();
 
         internal static void Init()
         {
             Ticker.Every(1f, Tick);
             DamageHooks.AddIncoming(Illusions);
-            Run.onRunStartGlobal += _ => { next.Clear(); phantoms.Clear(); };
+            Run.onRunStartGlobal += _ => { next.Clear(); phantoms.Clear(); curseTime.Clear(); };
         }
 
         private static void Tick()
@@ -98,11 +141,11 @@ namespace MoreQuality.Hallowed
                 var models = Enemies.Near(body.corePosition, SearchRange, body.teamComponent.teamIndex)
                     .Where(h => h.body.master && !h.body.isBoss && !h.body.HasBuff(CustomBuffs.Phantom)).ToList();
                 if (models.Count == 0) continue;
-                for (var i = 0; i < Mathf.RoundToInt(Q.Stack(counts, Count)); i++) Spawn(models[Random.Range(0, models.Count)].body, body);
+                for (var i = 0; i < Mathf.RoundToInt(Q.Stack(counts, Count)); i++) Spawn(models[Random.Range(0, models.Count)].body, body, Q.Stack(counts, CurseTime));
             }
         }
 
-        private static void Spawn(CharacterBody model, CharacterBody near)
+        private static void Spawn(CharacterBody model, CharacterBody near, float curse)
         {
             var prefab = MasterCatalog.GetMasterPrefab(model.master.masterIndex);
             if (!prefab) return;
@@ -121,6 +164,7 @@ namespace MoreQuality.Hallowed
             }.Perform();
             if (!master) return;
             phantoms[master] = Time.fixedTime + Lifetime;
+            curseTime[master] = curse;
             Mark(master, near, 30);
         }
 
@@ -151,7 +195,11 @@ namespace MoreQuality.Hallowed
             damageInfo.damage = 0f;
             damageInfo.procCoefficient = 0f;
             var master = body.master;
-            if (master) phantoms.Remove(master);
+            if (!master || !phantoms.Remove(master)) return;   // already popped
+            float curse;
+            if (attacker && curseTime.TryGetValue(master, out curse) && attacker.teamComponent.teamIndex != body.teamComponent.teamIndex)
+                attacker.AddTimedBuff(Curses[Random.Range(0, Curses.Length)], curse);
+            curseTime.Remove(master);
             RoR2Application.onNextUpdate += () => Vanish(master);
         }
 

@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.4.2
+
+- Fixed the game hanging at 99% loading in big modpacks without DpsMeter (issue #6): the DpsMeter lookup now runs once instead of scanning every loaded mod hundreds of times.
+- Hex of Acceleration: instead of a constant wind, wind zones now appear where you stand every so often (sooner at higher quality) and push everyone inside them for a while.
+- Hex of Blindness: popping a phantom gives you a random malus for a few seconds (longer at higher quality).
+- Credits section on the mod page.
+
 ## 0.4.1
 
 - Mod page wording: effects are described, not named.

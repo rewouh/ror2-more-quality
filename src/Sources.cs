@@ -76,16 +76,36 @@ namespace MoreQuality
             if (loaded) TellDpsMeter(name, owner);
         }
 
+        // DpsMeter's table, looked up once. Never use AccessTools.TypeByName here: when the type is missing it
+        // scans every type of every loaded assembly, and doing that once per source froze loading at 99% in
+        // big modpacks (issue #6). Assembly.GetType only asks each assembly for that one name.
+        private static bool searched;
+        private static Type map;
+        private static System.Reflection.FieldInfo table;
+
+        private static Dictionary<string, string> Table()
+        {
+            if (!searched)
+            {
+                searched = true;
+                foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
+                {
+                    try { map = assembly.GetType(DpsMeterMap, false); } catch { map = null; }
+                    if (map != null) break;
+                }
+                table = map != null ? AccessTools.Field(map, "_prefabToOwner") : null;
+                if (table == null) map = null;
+            }
+            if (map == null) return null;
+            if (table.GetValue(null) == null) AccessTools.Method(map, "Load")?.Invoke(null, null);
+            return table.GetValue(null) as Dictionary<string, string>;
+        }
+
         private static void TellDpsMeter(string name, string owner)
         {
             try
             {
-                var map = AccessTools.TypeByName(DpsMeterMap);
-                if (map == null) return;
-                var table = AccessTools.Field(map, "_prefabToOwner");
-                if (table == null) return;
-                if (table.GetValue(null) == null) AccessTools.Method(map, "Load")?.Invoke(null, null);
-                var entries = table.GetValue(null) as Dictionary<string, string>;
+                var entries = Table();
                 if (entries != null) entries[name] = owner;
             }
             catch (Exception e)

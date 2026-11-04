@@ -349,13 +349,14 @@ def hex_line(lines):
     return [line + CLEANSE for line in lines]
 
 
-ITEMS["SlipperyGround"] = ("A gale sweeps the stage.", hex_line(add(per_tier(
-    "A wind sweeps the stage and pushes every player at {0}, turning to a new direction every {1}.",
-    qs(["3 m/s", "6 m/s", "12 m/s", "20 m/s"], death), qs(["20s", "15s", "12s", "8s"], death)))))
+ITEMS["SlipperyGround"] = ("Wind zones appear where you stand.", hex_line(add(per_tier(
+    "Every {0}, a wind zone {1} wide appears where you stand and blows for {2}, pushing every player inside it at {3}.",
+    qs(["25-45s", "18-32s", "12-22s", "8-14s"], death), qs(["16m", "22m", "30m", "40m"], death),
+    qs(["8s", "10s", "12s", "15s"], death), qs(["4 m/s", "8 m/s", "14 m/s", "22 m/s"], death)))))
 
 ITEMS["Blindness"] = ("Phantoms appear around you.", hex_line(add(per_tier(
-    "Every {0}, {1} phantom copies of nearby enemies appear around you. They deal no damage and burst into smoke when hit.",
-    qs(["12s", "9s", "6s", "4s"], death), qs(["1", "2", "3", "5"], death)))))
+    "Every {0}, {1} phantom copies of nearby enemies appear around you. They deal no damage; hitting one pops it and gives you a " + death("random malus") + " for {2}.",
+    qs(["12s", "9s", "6s", "4s"], death), qs(["1", "2", "3", "5"], death), qs(["2s", "3s", "5s", "8s"], death)))))
 
 ITEMS["LowerHealing"] = ("You get hungry.", hex_line(add(per_tier(
     "A hunger bar empties over {0}. Healing fills it first; while it's empty you starve, losing {1} of your maximum health per second.",

@@ -106,8 +106,8 @@ A quality Hex keeps its normal effect and adds a nasty new twist. Cleansing it g
 
 | Hex | Quality twist |
 |---|---|
-| Hex of Acceleration | A wind sweeps the stage, pushing every player at 3 / 6 / 12 / 20 m/s and turning every 20 / 15 / 12 / 8s |
-| Hex of Blindness | Every 12 / 9 / 6 / 4s, 1 / 2 / 3 / 5 harmless phantom copies of nearby enemies appear; they burst into smoke when hit |
+| Hex of Acceleration | Every 25-45 / 18-32 / 12-22 / 8-14s, a wind zone (16 / 22 / 30 / 40m wide) appears where you stand for 8 / 10 / 12 / 15s, pushing every player inside it at 4 / 8 / 14 / 22 m/s |
+| Hex of Blindness | Every 12 / 9 / 6 / 4s, 1 / 2 / 3 / 5 phantom copies of nearby enemies appear around you. They deal no damage, but popping one gives you a random malus for 2 / 3 / 5 / 8s |
 | Hex of Famine | A hunger bar empties over 90 / 60 / 40 / 25s; healing fills it first, and when it's empty you starve (1 / 2 / 4 / 8% max health per second) |
 | Hex of Greed | Small monsters next to you can snatch an item (5 / 10 / 25 / 45% per second) and run away with it; kill the thief to get it back |
 | Hex of Haunting | Items that land near you get grabbed by a fast wisp (almost instantly at high quality, briefly immune) that flies away with them; shoot it or catch it to get the item back |
@@ -136,6 +136,11 @@ Not covered: N'tormat Pages, the DLC's boss items and equipment, and the Seed of
 ## Known issues
 
 - **Nightmare Demon:** when its host dies, a demon sometimes falls to the ground and fades instead of jumping to a nearby enemy.
+
+## Credits
+
+- **Bastien**: the idea for the quality Hex of Misfortune, where interactions can fail while you still pay for them.
+- **Axel**: the idea for the quality Hex of Blindness.
 
 ## Feedback
 

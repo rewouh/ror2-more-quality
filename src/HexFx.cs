@@ -14,10 +14,8 @@ namespace MoreQuality
         public static GameObject Botched, BoneShard, PainLink, Snatch, ReaperMiss, ReaperHit, ReaperSwoop, CrownJump, PhantomPoof, Slip, GhostCatch;
 
         // Networked objects.
-        public static GameObject GhostCarrier, BoneSpikes, StormCloud;
+        public static GameObject GhostCarrier, BoneSpikes, StormCloud, WindZone;
 
-        // Local-only templates (each game builds its own copy).
-        public static GameObject GaleStreaks;
 
         private static readonly Color Bone = new Color(0.93f, 0.9f, 0.8f);
         private static readonly Color Cursed = new Color(0.45f, 0.15f, 0.55f);
@@ -103,12 +101,16 @@ namespace MoreQuality
                 Visuals.Particles(root, "Dust", new Spec { Material = Visuals.Kind.Smoke, Color = new Color(0.8f, 0.75f, 0.65f), Size = 0.8f, Lifetime = 1.2f, Speed = 1.5f, Burst = 20, Shape = Shape.Circle, Radius = 0.5f, Grow = true, Drag = 0.5f, Rotation = Flat });
             });
 
-            GaleStreaks = Visuals.Template("MoreQualityGale", root =>
+            WindZone = Networked(pack, "MoreQualityWindZone", false, root =>
             {
-                Blowing(Visuals.Particles(root, "Streaks", new Spec { Material = Visuals.Kind.Spark, Color = new Color(0.85f, 0.9f, 1f), Size = 0.12f, Lifetime = 0.8f, Rate = 70f, Speed = 0.01f, Shape = Shape.Box, Radius = 1f, Stretch = true }),
-                    new Vector3(30f, 8f, 30f), 25f, 35f);
-                Blowing(Visuals.Particles(root, "Dust", new Spec { Material = Visuals.Kind.Smoke, Color = new Color(0.7f, 0.65f, 0.55f), Size = 0.6f, Lifetime = 1.2f, Rate = 15f, Speed = 0.01f, Shape = Shape.Box, Radius = 1f, Spin = true }),
-                    new Vector3(25f, 1f, 25f), 10f, 18f);
+                // Built for a 10m radius; Decor scales it to the actual one. Streaks and dust blow along its
+                // forward axis (the wind's direction), and a ring of swirling dust marks its edge.
+                Blowing(Visuals.Particles(root, "Streaks", new Spec { Material = Visuals.Kind.Spark, Color = new Color(0.85f, 0.9f, 1f), Size = 0.12f, Lifetime = 0.7f, Rate = 90f, Speed = 0.01f, Shape = Shape.Box, Radius = 1f, Stretch = true, Local = true }),
+                    new Vector3(17f, 5f, 17f), 20f, 30f).gameObject.transform.localPosition = Vector3.up * 2.5f;
+                Blowing(Visuals.Particles(root, "Dust", new Spec { Material = Visuals.Kind.Smoke, Color = new Color(0.7f, 0.65f, 0.55f), Size = 0.8f, Lifetime = 1.2f, Rate = 25f, Speed = 0.01f, Shape = Shape.Box, Radius = 1f, Spin = true, Local = true }),
+                    new Vector3(17f, 1f, 17f), 8f, 14f).gameObject.transform.localPosition = Vector3.up * 0.5f;
+                Visuals.Particles(root, "Edge", new Spec { Material = Visuals.Kind.Smoke, Color = new Color(0.75f, 0.8f, 0.85f), Size = 0.9f, Lifetime = 1.5f, Rate = 40f, Speed = 0.4f, Shape = Shape.Circle, Radius = 10f, Shell = true, Gravity = -0.03f, Grow = true, Spin = true, Local = true, Rotation = Flat });
+                root.parent.gameObject.AddComponent<Visuals.WindZoneMarker>();
             });
             StormCloud = Networked(pack, "MoreQualityStormCloud", true, root =>
             {
@@ -159,7 +161,7 @@ namespace MoreQuality
 
         // Particles carried along the template's forward axis (the wind direction). Unity ignores velocity over
         // lifetime unless all three axes use the same kind of curve, hence the small random x and y.
-        private static void Blowing(ParticleSystem particles, Vector3 area, float minSpeed, float maxSpeed)
+        private static ParticleSystem Blowing(ParticleSystem particles, Vector3 area, float minSpeed, float maxSpeed)
         {
             var shape = particles.shape;
             shape.scale = area;
@@ -169,6 +171,7 @@ namespace MoreQuality
             velocity.x = new ParticleSystem.MinMaxCurve(-1f, 1f);
             velocity.y = new ParticleSystem.MinMaxCurve(-0.5f, 0.5f);
             velocity.z = new ParticleSystem.MinMaxCurve(minSpeed, maxSpeed);
+            return particles;
         }
 
         // A networked object of our own: built from scratch, spawned by the server, seen by everyone.

@@ -22,7 +22,7 @@ namespace MoreQuality
     {
         public const string GUID = "com.rewouh.MoreQuality";
         public const string Name = "MoreQuality";
-        public const string Version = "0.4.1";
+        public const string Version = "0.4.2";
 
         internal static ManualLogSource Log;
         internal static Harmony Harmony;
