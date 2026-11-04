@@ -16,12 +16,13 @@ namespace MoreQuality
     [BepInDependency(R2API.PrefabAPI.PluginGUID)]
     [BepInDependency(R2API.ContentManagement.R2APIContentManager.PluginGUID)]
     [BepInDependency(R2API.LanguageAPI.PluginGUID)]
+    [BepInDependency(R2API.Networking.NetworkingAPI.PluginGUID)]
     [BepInDependency(RiskOfOptionsCompat.GUID, BepInDependency.DependencyFlags.SoftDependency)]
     public sealed class MoreQualityPlugin : BaseUnityPlugin
     {
         public const string GUID = "com.rewouh.MoreQuality";
         public const string Name = "MoreQuality";
-        public const string Version = "0.3.4";
+        public const string Version = "0.4.0";
 
         internal static ManualLogSource Log;
         internal static Harmony Harmony;
@@ -47,6 +48,8 @@ namespace MoreQuality
             BaseText.Register();
             Fx.Register();
             Sources.Register();
+            HexFx.Register();
+            Decor.Register();
 
             // Every quality effect lives in its own static class with an Init(): Starstorm2 items in
             // MoreQuality.Items, Hallowed Concepts ones in MoreQuality.Hallowed. One failing to hook

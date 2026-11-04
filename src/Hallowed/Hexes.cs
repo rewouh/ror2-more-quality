@@ -1,12 +1,8 @@
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
-using System.Reflection.Emit;
-using System.Runtime.CompilerServices;
+using EntityStates;
 using HarmonyLib;
 using ItemQualities;
-using R2API;
-using EntityStates;
 using RoR2;
 using RoR2.Items;
 using UnityEngine;
@@ -14,238 +10,489 @@ using UnityEngine.Networking;
 
 namespace MoreQuality.Hallowed
 {
-    // A quality hex is a WORSE hex. Its payoff is the cleansing bonus (see Cleansing.cs).
+    // A quality hex keeps its normal effect and adds a new twist on top. Its payoff is the cleansing
+    // bonus (see Cleansing.cs). The other half of the hexes is in HexesWorld.cs.
 
-    // Hex of Acceleration: acceleration swings every 3 seconds between the normal penalty and a harsher one.
+    // Hex of Acceleration, Gale: a wind sweeps the stage and pushes every player, turning every few seconds.
+    // Movement belongs to each player's own game, so every game pushes its own player; the wind's direction
+    // comes from the shared run clock, so it's the same everywhere.
     internal static class HexOfAcceleration
     {
-        private static readonly T4 HarshPenalty = new T4(0.5f, 0.6f, 0.75f, 0.95f);
-        private const float Period = 3f;
-        private const float BasePenalty = 0.4f;
-        private static bool harsh;
-        private static readonly System.Action<CharacterBody, float> setAcceleration =
-            AccessTools.MethodDelegate<System.Action<CharacterBody, float>>(AccessTools.PropertySetter(typeof(CharacterBody), nameof(CharacterBody.acceleration)));
+        private static readonly T4 Push = new T4(3f, 6f, 12f, 20f);       // m/s
+        private static readonly T4 Period = new T4(20f, 15f, 12f, 8f);    // seconds between turns
+        private static GameObject streaks;
 
         internal static void Init()
         {
-            Hooks.Patch(typeof(CharacterBody), nameof(CharacterBody.RecalculateStats), typeof(HexOfAcceleration), postfix: nameof(After));
-            // Movement runs on each player's own game, so every game flips the phase from the shared run clock.
-            RoR2Application.onFixedUpdate += () =>
-            {
-                if (!Run.instance) return;
-                var now = Mathf.FloorToInt(Run.instance.GetRunStopwatch() / Period) % 2 == 1;
-                if (now == harsh) return;
-                harsh = now;
-                foreach (var body in CharacterBody.readOnlyInstancesList)
-                {
-                    if (body && Q.Any(Q.Counts(body, DLC4Content.Items.SlipperyGround))) body.MarkAllStatsDirty();
-                }
-            };
+            RoR2Application.onFixedUpdate += Blow;
         }
 
-        private static void After(CharacterBody __instance)
+        private static void Blow()
         {
-            if (!harsh) return;
-            var tier = Q.Highest(Q.Counts(__instance, DLC4Content.Items.SlipperyGround));
-            if (tier != QualityTier.None) setAcceleration(__instance, __instance.acceleration * (1f - HarshPenalty[tier]) / (1f - BasePenalty));
+            var counts = Run.instance ? Dlc.TeamBest(DLC4Content.Items.SlipperyGround) : ItemQualityCounts.zero;
+            if (!Q.Any(counts))
+            {
+                if (streaks) Object.Destroy(streaks);
+                return;
+            }
+            var period = Q.AtHighest(counts, Period);
+            var turn = Mathf.Floor(Run.instance.GetRunStopwatch() / period);
+            var angle = Mathf.Repeat(Mathf.Sin(turn * 12.9898f + 78.233f) * 43758.5453f, 1f) * 360f;
+            var direction = Quaternion.Euler(0f, angle, 0f) * Vector3.forward;
+            var push = direction * Q.Stack(counts, Push) * Time.fixedDeltaTime;
+
+            CharacterBody local = null;
+            foreach (var user in LocalUserManager.readOnlyLocalUsersList)
+            {
+                var body = user.cachedBody;
+                if (!body || !body.hasEffectiveAuthority || !body.characterMotor) continue;
+                body.characterMotor.rootMotion += push;
+                local = body;
+            }
+
+            if (!local) return;
+            if (!streaks && HexFx.GaleStreaks) streaks = Object.Instantiate(HexFx.GaleStreaks);
+            if (!streaks) return;
+            streaks.transform.position = local.corePosition - direction * 12f;
+            streaks.transform.rotation = Quaternion.Slerp(streaks.transform.rotation, Quaternion.LookRotation(direction), 0.1f);
         }
     }
 
-    // Hex of Blindness: vision drops much further, and enemies you can't see hit you harder.
+    // Hex of Blindness, Phantoms: harmless illusions of nearby enemies keep appearing around you. They deal
+    // no damage, give nothing, burst into smoke when hit, and fade after a while. Only you can see yours:
+    // every other player's game hides them (see Decor).
     internal static class HexOfBlindness
     {
-        private static readonly T4 Vision = new T4(65f, 40f, 20f, 1f);
-        private static readonly T4 UnseenDamage = new T4(0.15f, 0.3f, 0.75f, 1.5f);
-        private static readonly System.Action<CharacterBody, float> setVision =
-            AccessTools.MethodDelegate<System.Action<CharacterBody, float>>(AccessTools.PropertySetter(typeof(CharacterBody), nameof(CharacterBody.visionDistance)));
+        private static readonly T4 Interval = new T4(12f, 9f, 6f, 4f);
+        private static readonly T4 Count = new T4(1f, 2f, 3f, 5f);
+        private const float Lifetime = 20f;
+        private const float SearchRange = 40f;
+
+        private static readonly Dictionary<CharacterBody, float> next = new Dictionary<CharacterBody, float>();
+        private static readonly Dictionary<CharacterMaster, float> phantoms = new Dictionary<CharacterMaster, float>();
 
         internal static void Init()
         {
-            Hooks.Patch(typeof(CharacterBody), nameof(CharacterBody.RecalculateStats), typeof(HexOfBlindness), postfix: nameof(After));
-            DamageHooks.Add(Unseen);
+            Ticker.Every(1f, Tick);
+            DamageHooks.AddIncoming(Illusions);
+            Run.onRunStartGlobal += _ => { next.Clear(); phantoms.Clear(); };
         }
 
-        private static void Unseen(HealthComponent victim, DamageInfo damageInfo, CharacterBody attacker)
+        private static void Tick()
         {
+            var now = Time.fixedTime;
+            foreach (var entry in phantoms.Where(e => !e.Key || e.Value < now).ToList())
+            {
+                phantoms.Remove(entry.Key);
+                Vanish(entry.Key);
+            }
+            foreach (var player in PlayerCharacterMasterController.instances)
+            {
+                var body = player && player.master ? player.master.GetBody() : null;
+                var counts = Q.Counts(body, DLC4Content.Items.Blindness);
+                if (!Q.Any(counts)) continue;
+                float due;
+                if (!next.TryGetValue(body, out due)) due = now + Q.AtHighest(counts, Interval);
+                if (now < due) { next[body] = due; continue; }
+                next[body] = now + Q.AtHighest(counts, Interval);
+                var models = Enemies.Near(body.corePosition, SearchRange, body.teamComponent.teamIndex)
+                    .Where(h => h.body.master && !h.body.isBoss && !h.body.HasBuff(CustomBuffs.Phantom)).ToList();
+                if (models.Count == 0) continue;
+                for (var i = 0; i < Mathf.RoundToInt(Q.Stack(counts, Count)); i++) Spawn(models[Random.Range(0, models.Count)].body, body);
+            }
+        }
+
+        private static void Spawn(CharacterBody model, CharacterBody near)
+        {
+            var prefab = MasterCatalog.GetMasterPrefab(model.master.masterIndex);
+            if (!prefab) return;
+            var ring = Random.insideUnitCircle.normalized * Random.Range(8f, 15f);
+            var position = near.footPosition + new Vector3(ring.x, 3f, ring.y);
+            RaycastHit hit;
+            if (Physics.Raycast(position, Vector3.down, out hit, 20f, LayerIndex.world.mask)) position = hit.point + Vector3.up * 0.5f;
+            var master = new MasterSummon
+            {
+                masterPrefab = prefab,
+                position = position,
+                rotation = Quaternion.LookRotation(near.corePosition - position),
+                teamIndexOverride = model.teamComponent.teamIndex,
+                ignoreTeamMemberLimit = true,
+                useAmbientLevel = true
+            }.Perform();
+            if (!master) return;
+            phantoms[master] = Time.fixedTime + Lifetime;
+            Mark(master, near, 30);
+        }
+
+        // The body appears a moment after the master: tag it once it's there.
+        private static void Mark(CharacterMaster master, CharacterBody seer, int triesLeft)
+        {
+            if (!master || triesLeft <= 0) return;
+            var body = master.GetBody();
+            if (!body) { RoR2Application.onNextUpdate += () => Mark(master, seer, triesLeft - 1); return; }
+            body.AddBuff(CustomBuffs.Phantom);
+            Decor.Decorate(body.gameObject, 1f, null, seer ? seer.gameObject : null);
+            var rewards = body.GetComponent<DeathRewards>();
+            if (rewards) { rewards.goldReward = 0; rewards.expReward = 0; }
+        }
+
+        private static void Illusions(HealthComponent victim, DamageInfo damageInfo, CharacterBody attacker)
+        {
+            if (attacker && attacker.HasBuff(CustomBuffs.Phantom))
+            {
+                damageInfo.damage = 0f;
+                damageInfo.procCoefficient = 0f;
+                damageInfo.damageType = DamageType.Silent | DamageType.NonLethal;
+                damageInfo.force = Vector3.zero;
+                return;
+            }
             var body = victim.body;
-            var tier = Q.Highest(Q.Counts(body, DLC4Content.Items.Blindness));
-            if (tier == QualityTier.None || attacker == body) return;
-            if ((attacker.corePosition - body.corePosition).sqrMagnitude > body.visionDistance * body.visionDistance) damageInfo.damage *= 1f + Q.Stack(Q.Counts(body, DLC4Content.Items.Blindness), UnseenDamage);
+            if (!body || !body.HasBuff(CustomBuffs.Phantom) || !NetworkServer.active) return;
+            damageInfo.damage = 0f;
+            damageInfo.procCoefficient = 0f;
+            var master = body.master;
+            if (master) phantoms.Remove(master);
+            RoR2Application.onNextUpdate += () => Vanish(master);
         }
 
-        private static void After(CharacterBody __instance)
-        {
-            var tier = Q.Highest(Q.Counts(__instance, DLC4Content.Items.Blindness));
-            if (tier != QualityTier.None) setVision(__instance, Mathf.Min(__instance.visionDistance, Vision[tier]));
-        }
-    }
-
-    // Hex of Famine: healing is cut harder, and the healing you lose goes to the nearest enemy instead: it
-    // heals the same share of its own max health, times the quality's multiplier.
-    internal static class HexOfFamine
-    {
-        private static readonly T4 Reduction = new T4(0.45f, 0.5f, 0.65f, 0.95f);
-        private static readonly T4 Stolen = new T4(0.3f, 0.6f, 1.5f, 3f);
-        private const float BaseReduction = 0.4f;
-        private const float StealRange = 40f;
-        private static readonly Dictionary<HealthComponent, float> lost = new Dictionary<HealthComponent, float>();   // share of max health
-
-        internal static void Init()
-        {
-            Hooks.Patch(typeof(HealthComponent), nameof(HealthComponent.Heal), typeof(HexOfFamine), prefix: nameof(Before));
-            Ticker.Every(0.5f, Steal);
-            Run.onRunStartGlobal += _ => lost.Clear();
-        }
-
-        private static void Before(HealthComponent __instance, ref float amount)
-        {
-            var tier = Q.Highest(Q.Counts(__instance.body, DLC4Content.Items.LowerHealing));
-            if (tier == QualityTier.None || amount <= 0f) return;
-            if (__instance.fullHealth > 0f)
-            {
-                float share;
-                lost.TryGetValue(__instance, out share);
-                lost[__instance] = share + amount * Reduction[tier] / __instance.fullHealth;
-            }
-            amount *= (1f - Reduction[tier]) / (1f - BaseReduction);
-        }
-
-        // Batched: healing comes in many small ticks.
-        private static void Steal()
-        {
-            foreach (var entry in lost.ToList())
-            {
-                lost.Remove(entry.Key);
-                var victim = entry.Key;
-                if (!victim || !victim.body) continue;
-                var tier = Q.Highest(Q.Counts(victim.body, DLC4Content.Items.LowerHealing));
-                var thief = Enemies.Near(victim.body.corePosition, StealRange, victim.body.teamComponent.teamIndex).FirstOrDefault();
-                if (tier == QualityTier.None || !thief) continue;
-                thief.HealFraction(entry.Value * Q.Stack(Q.Counts(victim.body, DLC4Content.Items.LowerHealing), Stolen), default(ProcChainMask));
-            }
-        }
-    }
-
-    // Hex of Greed: shares more often, with more enemies.
-    internal static class HexOfGreed
-    {
-        private static readonly T4 Interval = new T4(13f, 11f, 8f, 5f);
-        private static readonly T4 Targets = new T4(3f, 4f, 5f, 8f);
-
-        internal static void Init()
-        {
-            Hooks.Transpile(typeof(ShareItemsWithEnemiesBehaviour), "FixedUpdate", typeof(HexOfGreed), nameof(IntervalPatch));
-            Hooks.Transpile(typeof(ShareItemsWithEnemiesBehaviour), "ShareItemsWithEnemies", typeof(HexOfGreed), nameof(TargetsPatch));
-        }
-
-        private static float GetInterval(ShareItemsWithEnemiesBehaviour behaviour)
-        {
-            var tier = Q.Highest(Q.Counts(behaviour.body, DLC4Content.Items.ShareItemsWithEnemies));
-            return tier == QualityTier.None ? 15f : Interval[tier];
-        }
-
-        private static int GetTargets(ShareItemsWithEnemiesBehaviour behaviour)
-        {
-            var tier = Q.Highest(Q.Counts(behaviour.body, DLC4Content.Items.ShareItemsWithEnemies));
-            return tier == QualityTier.None ? 3 : (int)Targets[tier];
-        }
-
-        private static IEnumerable<CodeInstruction> IntervalPatch(IEnumerable<CodeInstruction> instructions)
-        {
-            foreach (var instruction in instructions)
-            {
-                if (instruction.opcode == OpCodes.Ldc_R4 && (float)instruction.operand == 15f)
-                {
-                    yield return new CodeInstruction(OpCodes.Ldarg_0);
-                    yield return new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(HexOfGreed), nameof(GetInterval)));
-                    continue;
-                }
-                yield return instruction;
-            }
-        }
-
-        private static IEnumerable<CodeInstruction> TargetsPatch(IEnumerable<CodeInstruction> instructions)
-        {
-            foreach (var instruction in instructions)
-            {
-                if (instruction.opcode == OpCodes.Ldc_I4_3)
-                {
-                    yield return new CodeInstruction(OpCodes.Ldarg_0);
-                    yield return new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(HexOfGreed), nameof(GetTargets)));
-                    continue;
-                }
-                yield return instruction;
-            }
-        }
-    }
-
-    // Monsters summoned by a quality Hex of Haunting or Mimicry come out stronger.
-    internal static class HexMonsters
-    {
-        private static readonly BuffDef[] Boons =
-        {
-            RoR2Content.Buffs.ArmorBoost, RoR2Content.Buffs.WarCryBuff, RoR2Content.Buffs.CloakSpeed, RoR2Content.Buffs.FullCrit, RoR2Content.Buffs.PowerBuff
-        };
-
-        public static void Empower(CharacterMaster master, int bonusPercent, float boonChance, float immuneSeconds)
+        // No death: nothing to kill, no on-kill effects to trigger.
+        private static void Vanish(CharacterMaster master)
         {
             if (!master) return;
-            RoR2Application.onNextUpdate += () =>
+            var body = master.GetBody();
+            if (body)
             {
-                var body = master ? master.GetBody() : null;
-                if (!body) return;
-                body.SetBuffCount(CustomBuffs.HexEmpowered.buffIndex, bonusPercent);
-                if (Util.CheckRoll(boonChance)) body.AddBuff(Boons[Random.Range(0, Boons.Length)]);
-                if (immuneSeconds > 0f) body.AddTimedBuff(RoR2Content.Buffs.Immune, immuneSeconds);
-            };
+                Visuals.Spawn(HexFx.PhantomPoof, body.corePosition, body.radius);
+                NetworkServer.Destroy(body.gameObject);
+            }
+            NetworkServer.Destroy(master.gameObject);
         }
     }
 
-    // Hex of Haunting: Poltergeists hit harder, may get a random boon, and are immune for a moment when they appear.
-    internal static class HexOfHaunting
+    // Hex of Famine, Hungry: a hunger bar (HungerBar.cs) empties over time. Healing fills it first; while
+    // it's empty you starve. The hunger is a hidden buff's stack count (1-101), so every game can draw it.
+    internal static class HexOfFamine
     {
-        private static readonly T4 Damage = new T4(25f, 50f, 125f, 250f);
-        private static readonly T4 BoonChance = new T4(25f, 50f, 100f, 100f);
-        private static readonly T4 Immune = new T4(1f, 2f, 4f, 8f);
-        private static readonly AccessTools.FieldRef<HauntedInteractable, CharacterMaster> spawned = AccessTools.FieldRefAccess<HauntedInteractable, CharacterMaster>("poltergeistMasterInstance");
-        private static readonly ConditionalWeakTable<CharacterMaster, object> done = new ConditionalWeakTable<CharacterMaster, object>();
+        private static readonly T4 EmptyTime = new T4(90f, 60f, 40f, 25f);
+        private static readonly T4 Starve = new T4(0.01f, 0.02f, 0.04f, 0.08f);   // of max health per second
+        private const float HealToFill = 0.5f;   // healing this share of max health fills the whole bar
+        private const float Tick = 0.5f;
+
+        private static readonly Dictionary<CharacterBody, float> hunger = new Dictionary<CharacterBody, float>();
 
         internal static void Init()
         {
-            Hooks.Patch(typeof(HauntedInteractable), "OnTriggerStay", typeof(HexOfHaunting), postfix: nameof(After));
+            Hooks.Patch(typeof(HealthComponent), nameof(HealthComponent.Heal), typeof(HexOfFamine), prefix: nameof(Eat));
+            Ticker.Every(Tick, Digest);
+            Run.onRunStartGlobal += _ => hunger.Clear();
         }
 
-        private static void After(HauntedInteractable __instance)
+        private static void Eat(HealthComponent __instance, ref float amount)
         {
-            var master = spawned(__instance);
-            object seen;
-            if (!NetworkServer.active || !master || done.TryGetValue(master, out seen)) return;
-            done.Add(master, null);
-            var tier = Q.Highest(Q.Counts(__instance.ownerBody, DLC4Content.Items.HexHaunting));
-            if (tier != QualityTier.None) HexMonsters.Empower(master, (int)Damage[tier], BoonChance[tier], Immune[tier]);
+            float food;
+            var body = __instance.body;
+            if (!body || amount <= 0f || __instance.fullHealth <= 0f || !hunger.TryGetValue(body, out food) || food >= 100f) return;
+            var points = amount / (__instance.fullHealth * HealToFill) * 100f;
+            var eaten = Mathf.Min(points, 100f - food);
+            hunger[body] = food + eaten;
+            amount -= eaten / 100f * __instance.fullHealth * HealToFill;
+            Show(body);
+        }
+
+        private static void Digest()
+        {
+            foreach (var body in hunger.Keys.Where(b => !b || !Q.Any(Q.Counts(b, DLC4Content.Items.LowerHealing))).ToList())
+            {
+                hunger.Remove(body);
+                if (body) body.SetBuffCount(CustomBuffs.Hunger.buffIndex, 0);
+            }
+            foreach (var player in PlayerCharacterMasterController.instances)
+            {
+                var body = player && player.master ? player.master.GetBody() : null;
+                var counts = Q.Counts(body, DLC4Content.Items.LowerHealing);
+                if (!Q.Any(counts) || !body.healthComponent || !body.healthComponent.alive) continue;
+                float food;
+                if (!hunger.TryGetValue(body, out food)) food = 100f;
+                food = Mathf.Max(0f, food - 100f / Q.AtHighest(counts, EmptyTime) * Tick);
+                hunger[body] = food;
+                Show(body);
+                if (food > 0f) continue;
+                body.healthComponent.TakeDamage(new DamageInfo
+                {
+                    damage = body.healthComponent.fullHealth * Q.Stack(counts, Starve) * Tick,
+                    position = body.corePosition,
+                    procCoefficient = 0f,
+                    damageColorIndex = DamageColorIndex.Void,
+                    damageType = DamageType.BypassArmor | DamageType.BypassBlock
+                });
+            }
+        }
+
+        private static void Show(CharacterBody body)
+        {
+            // Offset by one, so the bar stays visible when it's empty.
+            var stacks = Mathf.Clamp(Mathf.CeilToInt(hunger[body]), 0, 100) + 1;
+            if (body.GetBuffCount(CustomBuffs.Hunger) != stacks) body.SetBuffCount(CustomBuffs.Hunger.buffIndex, stacks);
         }
     }
 
-    // Hex of Mimicry: Mimics are faster, hit harder, and are immune for a moment when they appear.
-    internal static class HexOfMimicry
+    // Hex of Misfortune, Botched: an interaction can fail. The cost is paid, nothing happens.
+    internal static class HexOfMisfortune
     {
-        private static readonly T4 Bonus = new T4(20f, 40f, 100f, 200f);
-        private static readonly T4 Immune = new T4(1f, 2f, 4f, 8f);
-        // Must start at None: QualityTier's default value (0) is Uncommon, which empowered every summon.
-        private static QualityTier spawning = QualityTier.None;
+        private static readonly T4 Chance = new T4(20f, 35f, 50f, 80f);
+        private const float MaxChance = 90f;
+
+        private struct Saved { public PurchaseEvent Purchase; public DetailedPurchaseEvent Detailed; }
 
         internal static void Init()
         {
-            Hooks.Patch(typeof(MimicryBehaviour), "TrySpawnMimic", typeof(HexOfMimicry), prefix: nameof(Before), postfix: nameof(After));
-            Hooks.Patch(typeof(MasterSummon), nameof(MasterSummon.Perform), typeof(HexOfMimicry), postfix: nameof(Summoned));
+            Hooks.Patch(typeof(PurchaseInteraction), nameof(PurchaseInteraction.OnInteractionBegin), typeof(HexOfMisfortune), prefix: nameof(Before), postfix: nameof(After));
         }
 
-        private static void Before(MimicryBehaviour __instance) { spawning = Q.Highest(Q.Counts(__instance.body, DLC4Content.Items.Mimicry)); }
-        private static void After() { spawning = QualityTier.None; }
-
-        private static void Summoned(CharacterMaster __result)
+        // The game pays first, then runs the purchase's effects (open, roll, buy): those are swapped out.
+        private static void Before(PurchaseInteraction __instance, Interactor activator, out Saved __state)
         {
-            if (spawning != QualityTier.None) HexMonsters.Empower(__result, (int)Bonus[spawning], 0f, Immune[spawning]);
+            __state = default(Saved);
+            if (!NetworkServer.active || !activator || __instance.costType == CostTypeIndex.None || __instance.costType == CostTypeIndex.Hex) return;
+            if (!__instance.CanBeAffordedByInteractor(activator)) return;
+            var body = activator.GetComponent<CharacterBody>();
+            var counts = Q.Counts(body, DLC4Content.Items.RandomDebuffOnInteract);
+            if (!Q.Any(counts) || !Util.CheckRoll(Mathf.Min(MaxChance, Q.Stack(counts, Chance)), body.master)) return;
+            __state = new Saved { Purchase = __instance.onPurchase, Detailed = __instance.onDetailedPurchaseServer };
+            __instance.onPurchase = new PurchaseEvent();
+            __instance.onDetailedPurchaseServer = new DetailedPurchaseEvent();
+            Visuals.Spawn(HexFx.Botched, __instance.gameObject.transform.position + Vector3.up, 1.5f);
+        }
+
+        private static void After(PurchaseInteraction __instance, Saved __state)
+        {
+            if (__state.Purchase == null) return;
+            __instance.onPurchase = __state.Purchase;
+            __instance.onDetailedPurchaseServer = __state.Detailed;
+        }
+    }
+
+    // Hex of Pain, Shared pain: every hit you take is also dealt to your allies nearby (players, drones,
+    // turrets, summons). With nobody around, an echo of the hit comes back to you instead.
+    internal static class HexOfPain
+    {
+        private static readonly T4 Shared = new T4(0.1f, 0.25f, 0.6f, 1.2f);
+        private static readonly T4 Range = new T4(15f, 20f, 30f, 40f);
+        private static readonly T4 Echo = new T4(0.05f, 0.1f, 0.25f, 0.5f);
+        private const float EchoDelay = 0.5f;
+
+        private struct Pending { public HealthComponent Victim; public float Damage, Due; }
+        private static readonly List<Pending> echoes = new List<Pending>();
+        private static bool sharing;
+
+        internal static void Init()
+        {
+            GlobalEventManager.onServerDamageDealt += OnHit;
+            Ticker.Every(0.1f, Echoes);
+            Run.onRunStartGlobal += _ => echoes.Clear();
+        }
+
+        private static void OnHit(DamageReport report)
+        {
+            var victim = report.victimBody;
+            if (sharing || !victim || report.damageDealt <= 0f) return;
+            var counts = Q.Counts(victim, DLC4Content.Items.HexCurse);
+            if (!Q.Any(counts)) return;
+
+            var range = Q.AtHighest(counts, Range);
+            var allies = TeamComponent.GetTeamMembers(victim.teamComponent.teamIndex)
+                .Select(m => m ? m.body : null)
+                .Where(b => b && b != victim && b.healthComponent && b.healthComponent.alive && (b.corePosition - victim.corePosition).sqrMagnitude <= range * range)
+                .ToList();
+            if (allies.Count == 0)
+            {
+                echoes.Add(new Pending { Victim = report.victim, Damage = report.damageDealt * Q.Stack(counts, Echo), Due = Time.fixedTime + EchoDelay });
+                return;
+            }
+            var damage = report.damageDealt * Q.Stack(counts, Shared);
+            sharing = true;
+            try
+            {
+                foreach (var ally in allies)
+                {
+                    Visuals.SpawnStreak(HexFx.PainLink, victim.corePosition, ally.corePosition);
+                    ally.healthComponent.TakeDamage(new DamageInfo
+                    {
+                        attacker = report.attacker,
+                        inflictor = Sources.Of(DLC4Content.Items.HexCurse),
+                        damage = damage,
+                        position = ally.corePosition,
+                        procCoefficient = 0f,
+                        damageColorIndex = DamageColorIndex.Bleed,
+                        damageType = DamageType.BypassArmor
+                    });
+                }
+            }
+            finally { sharing = false; }
+        }
+
+        private static void Echoes()
+        {
+            var now = Time.fixedTime;
+            sharing = true;
+            try
+            {
+                foreach (var echo in echoes.Where(e => e.Due <= now).ToList())
+                {
+                    echoes.Remove(echo);
+                    if (!echo.Victim || !echo.Victim.alive) continue;
+                    echo.Victim.TakeDamage(new DamageInfo
+                    {
+                        damage = echo.Damage,
+                        position = echo.Victim.body ? echo.Victim.body.corePosition : echo.Victim.gameObject.transform.position,
+                        procCoefficient = 0f,
+                        damageColorIndex = DamageColorIndex.Bleed,
+                        damageType = DamageType.BypassArmor
+                    });
+                }
+            }
+            finally { sharing = false; }
+        }
+    }
+
+    // Hex of Patience, Reaper: outside the charging Teleporter a reaper follows you and swings every second,
+    // with a chance to execute you that doubles every few seconds you stay out.
+    internal static class HexOfPatience
+    {
+        private static readonly T4 Chance = new T4(1f, 2f, 3f, 5f);   // per swing
+        private static readonly T4 DoublingTime = new T4(20f, 15f, 8f, 5f);
+        private static readonly Dictionary<CharacterBody, float> outside = new Dictionary<CharacterBody, float>();
+
+        internal static void Init()
+        {
+            Ticker.Every(1f, Swing);
+            Run.onRunStartGlobal += _ => outside.Clear();
+        }
+
+        private static void Swing()
+        {
+            var teleporter = TeleporterInteraction.instance;
+            var counts = Dlc.TeamBest(DLC4Content.Items.OutOfTPRadius);
+            if (!teleporter || !teleporter.isCharging || !Q.Any(counts) || !teleporter.holdoutZoneController)
+            {
+                outside.Clear();
+                return;
+            }
+            foreach (var member in TeamComponent.GetTeamMembers(TeamIndex.Player))
+            {
+                var body = member ? member.body : null;
+                if (!body || !body.healthComponent || !body.healthComponent.alive || !body.isPlayerControlled) continue;
+                if (teleporter.holdoutZoneController.IsBodyInChargingRadius(body)) { outside.Remove(body); continue; }
+                float seconds;
+                outside.TryGetValue(body, out seconds);
+                outside[body] = seconds + 1f;
+                CustomBuffs.Mark(body, CustomBuffs.Reaped, 1, 1.5f);
+                Visuals.SpawnOn(HexFx.ReaperSwoop, body, 1f);
+                var chance = Q.Stack(counts, Chance) * Mathf.Pow(2f, seconds / Q.AtHighest(counts, DoublingTime));
+                if (!Util.CheckRoll(chance)) continue;   // a miss: the scythe's swing is enough
+                Visuals.Spawn(HexFx.ReaperHit, body.corePosition, 1f);
+                body.healthComponent.Suicide();
+            }
+        }
+    }
+
+    // Hex of Rain, Storm clouds: red storm clouds drift around the stage, raining on whatever is under them.
+    // Enemies under a cloud are enraged; players under one are drenched, losing luck. The clouds are our own
+    // networked objects, moved by the server (Decor.Move), so every game sees them in the same place.
+    internal static class HexOfRain
+    {
+        private static readonly T4 Clouds = new T4(1f, 2f, 3f, 4f);
+        private static readonly T4 Radius = new T4(8f, 10f, 13f, 16f);
+        private static readonly T4 Drift = new T4(3f, 4f, 5f, 6f);           // m/s
+        private static readonly T4 Rage = new T4(15f, 30f, 60f, 100f);       // percent
+        private static readonly T4 BadLuck = new T4(1f, 1f, 2f, 3f);
+        private const float Height = 14f;
+        private const float Wander = 40f;
+
+        private sealed class Cloud { public GameObject Object; public Vector3 Target; public float Radius; }
+        private static readonly List<Cloud> clouds = new List<Cloud>();
+
+        internal static void Init()
+        {
+            Ticker.Every(0.5f, Rain);
+            RoR2Application.onFixedUpdate += Move;
+            Hooks.Patch(typeof(CharacterBody), nameof(CharacterBody.RecalculateStats), typeof(HexOfRain), postfix: nameof(Drenched));
+            Run.onRunStartGlobal += _ => clouds.Clear();
+        }
+
+        // The game sets your luck in RecalculateStats; being drenched takes some away.
+        private static void Drenched(CharacterBody __instance)
+        {
+            var stacks = __instance.GetBuffCount(CustomBuffs.Drenched);
+            if (stacks > 0 && __instance.master) __instance.master.luck -= stacks;
+        }
+
+        private static CharacterBody RandomPlayer()
+        {
+            var players = PlayerCharacterMasterController.instances.Select(p => p && p.master ? p.master.GetBody() : null).Where(b => b).ToList();
+            return players.Count > 0 ? players[Random.Range(0, players.Count)] : null;
+        }
+
+        private static Vector3 NewTarget()
+        {
+            var player = RandomPlayer();
+            var offset = Random.insideUnitCircle * Wander;
+            return player ? player.footPosition + new Vector3(offset.x, 0f, offset.y) : Vector3.zero;
+        }
+
+        private static void Rain()
+        {
+            clouds.RemoveAll(c => !c.Object);
+            var counts = Dlc.TeamBest(DLC4Content.Items.IncreasedDifficulty);
+            if (!Q.Any(counts) || !HexFx.StormCloud)
+            {
+                foreach (var cloud in clouds) NetworkServer.Destroy(cloud.Object);
+                clouds.Clear();
+                return;
+            }
+            var radius = Q.Stack(counts, Radius);
+            while (clouds.Count < (int)Q.AtHighest(counts, Clouds) && RandomPlayer())
+            {
+                var start = NewTarget() + Vector3.up * Height;
+                var cloud = Object.Instantiate(HexFx.StormCloud, start, Quaternion.identity);
+                NetworkServer.Spawn(cloud);
+                Decor.Decorate(cloud, radius / 10f, null);
+                clouds.Add(new Cloud { Object = cloud, Target = NewTarget(), Radius = radius });
+            }
+
+            var rage = Mathf.RoundToInt(Q.Stack(counts, Rage));
+            var luck = Mathf.RoundToInt(Q.AtHighest(counts, BadLuck));
+            foreach (var member in CharacterBody.readOnlyInstancesList)
+            {
+                if (!member || !member.healthComponent || !member.healthComponent.alive) continue;
+                if (!clouds.Any(c => Under(member, c))) continue;
+                if (member.teamComponent.teamIndex == TeamIndex.Player) { if (member.isPlayerControlled) CustomBuffs.Mark(member, CustomBuffs.Drenched, luck, 0.75f); }
+                else CustomBuffs.Mark(member, CustomBuffs.Enraged, rage, 0.75f);
+            }
+        }
+
+        private static bool Under(CharacterBody body, Cloud cloud)
+        {
+            var offset = body.corePosition - cloud.Object.transform.position;
+            return offset.y < 0f && offset.x * offset.x + offset.z * offset.z <= cloud.Radius * cloud.Radius;
+        }
+
+        private static void Move()
+        {
+            if (!NetworkServer.active || clouds.Count == 0) return;
+            var speed = Q.AtHighest(Dlc.TeamBest(DLC4Content.Items.IncreasedDifficulty), Drift);
+            foreach (var cloud in clouds)
+            {
+                if (!cloud.Object) continue;
+                var position = cloud.Object.transform.position;
+                var flat = cloud.Target - position;
+                flat.y = 0f;
+                if (flat.sqrMagnitude < 4f) { cloud.Target = NewTarget(); continue; }
+                position += flat.normalized * speed * Time.fixedDeltaTime;
+                RaycastHit hit;
+                if (Physics.Raycast(position + Vector3.up * 30f, Vector3.down, out hit, 120f, LayerIndex.world.mask)) position.y = Mathf.Lerp(position.y, hit.point.y + Height, 0.02f);
+                Decor.Move(cloud.Object, position);
+            }
         }
     }
 
@@ -290,296 +537,6 @@ namespace MoreQuality.Hallowed
             if (tier == QualityTier.None || !NetworkServer.active) return;
             var buff = DLC4Content.Buffs.WeakAssHamstringJumpReduction;
             body.SetBuffCount(buff.buffIndex, Mathf.Min(100, body.GetBuffCount(buff) + (int)ExtraPenalty[tier]));
-        }
-    }
-
-    // Hex of Loss: a larger share of your items is disabled.
-    internal static class HexOfLoss
-    {
-        private static readonly T4 Share = new T4(0.15f, 0.25f, 0.4f, 0.6f);
-
-        internal static void Init()
-        {
-            Hooks.Transpile(typeof(RoamingItemDisableBehavior), "RoamItemDisable", typeof(HexOfLoss), nameof(Patch));
-        }
-
-        // The game disables 10% of your items per stack: count each quality hex as share / 10%.
-        private static float EffectiveStacks(BaseItemBodyBehavior behaviour)
-        {
-            var counts = Q.Counts(behaviour.body, DLC4Content.Items.RoamingItemDisable);
-            return behaviour.stack - counts.TotalQualityCount + Q.Sum(counts, Share) / 0.1f;
-        }
-
-        private static IEnumerable<CodeInstruction> Patch(IEnumerable<CodeInstruction> instructions)
-        {
-            var stack = AccessTools.Field(typeof(BaseItemBodyBehavior), nameof(BaseItemBodyBehavior.stack));
-            var list = instructions.ToList();
-            for (var i = 0; i < list.Count - 1; i++)
-            {
-                if (list[i].LoadsField(stack) && list[i + 1].opcode == OpCodes.Conv_R4)
-                {
-                    list[i] = new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(HexOfLoss), nameof(EffectiveStacks))).MoveLabelsFrom(list[i]);
-                    list[i + 1] = new CodeInstruction(OpCodes.Nop).MoveLabelsFrom(list[i + 1]);
-                }
-            }
-            return list;
-        }
-    }
-
-    // Hex of Misfortune: debuffs are more likely, and each can come with more.
-    internal static class HexOfMisfortune
-    {
-        private static readonly T4 Chance = new T4(60f, 70f, 85f, 100f);
-        private static readonly T4 ExtraChance = new T4(20f, 40f, 100f, 100f);
-        private static readonly T4 Extra = new T4(1f, 1f, 2f, 4f);
-        private static readonly MethodInfo applyDebuff = AccessTools.Method(typeof(RandomDebuffOnInteractBehaviour), "ApplyDebuff");
-        private static readonly MethodInfo reroll = AccessTools.Method(typeof(RandomDebuffOnInteractBehaviour), "RerollHalfOfDebuffs");
-        private static int applied;
-
-        internal static void Init()
-        {
-            Hooks.Patch(typeof(RandomDebuffOnInteractBehaviour), "RollChanceForDebuff", typeof(HexOfMisfortune), prefix: nameof(Before), postfix: nameof(After));
-            Hooks.Patch(typeof(RandomDebuffOnInteractBehaviour), "ApplyDebuff", typeof(HexOfMisfortune), postfix: nameof(Counted));
-        }
-
-        private static void Before() { applied = 0; }
-        private static void Counted() { applied++; }
-
-        private static void After(RandomDebuffOnInteractBehaviour __instance, Interactor interactor, GameObject interactableObject)
-        {
-            var body = __instance.body;
-            if (!body || !interactor || interactor.GetComponent<CharacterBody>() != body || interactableObject.GetComponent<ShrineChanceBehavior>()) return;
-            var tier = Q.Highest(Q.Counts(body, DLC4Content.Items.RandomDebuffOnInteract));
-            if (tier == QualityTier.None) return;
-            // The game rolled 50% per stack; top the misses up to the quality chance.
-            var hits = applied;
-            var topUp = (Chance[tier] - 50f) / 50f * 100f;
-            for (var i = applied; i < __instance.stack; i++)
-            {
-                if (Util.CheckRoll(topUp, body.master)) { applyDebuff.Invoke(__instance, null); hits++; }
-            }
-            for (var hit = 0; hit < hits; hit++)
-            {
-                if (!Util.CheckRoll(ExtraChance[tier], body.master)) continue;
-                for (var i = 0; i < Extra[tier]; i++)
-                {
-                    reroll.Invoke(__instance, null);
-                    applyDebuff.Invoke(__instance, null);
-                }
-            }
-        }
-    }
-
-    // Hex of Ossification: more barrier; enemies are also healed, and an elite's death passes on its powers.
-    internal static class HexOfOssification
-    {
-        private static readonly T4 Barrier = new T4(1.25f, 1.5f, 2.25f, 3.5f);
-        private static readonly T4 HealFraction = new T4(0.2f, 0.4f, 1f, 1f);
-        private static readonly T4 EliteDuration = new T4(4f, 8f, 20f, 40f);
-
-        internal static void Init()
-        {
-            Hooks.Patch(typeof(GlobalEventManager), nameof(GlobalEventManager.ProcBarrierEnemiesOnKill), typeof(HexOfOssification), postfix: nameof(After));
-        }
-
-        private static void After(DamageReport damageReport, int itemStacks, CharacterBody victimBody, TeamIndex attackerTeamIndex)
-        {
-            var tier = Q.Highest(Q.Counts(damageReport.attackerBody, DLC4Content.Items.BarrierEnemiesOnKill));
-            if (tier == QualityTier.None || !victimBody) return;
-            var radius = 15f + 15f * itemStacks + victimBody.radius;
-            var eliteBuffs = victimBody.isElite
-                ? BuffCatalog.eliteBuffIndices.Where(victimBody.HasBuff).ToList()
-                : new List<BuffIndex>();
-            foreach (var enemy in Enemies.Near(victimBody.corePosition, radius, attackerTeamIndex, victimBody.healthComponent))
-            {
-                enemy.AddBarrier(victimBody.maxHealth * (Barrier[tier] - 1f));
-                enemy.HealFraction(HealFraction[tier], default(ProcChainMask));
-                foreach (var buff in eliteBuffs) enemy.body.AddTimedBuff(buff, EliteDuration[tier]);
-            }
-        }
-    }
-
-    // Hex of Pain: max health falls further, and hits can leave a wound that keeps hurting you.
-    internal static class HexOfPain
-    {
-        // Extra curse per quality copy, on top of the game's 0.3: 1 / (1 - reduction) - 1.3.
-        private static readonly T4 ExtraCurse = new T4(0.2385f, 0.3667f, 0.7f, 3.7f);
-        private static readonly T4 WoundChance = new T4(10f, 20f, 40f, 75f);
-        private static readonly T4 WoundDamage = new T4(0.25f, 0.5f, 1.25f, 2.5f);   // of the hit, over the wound's duration
-        private const int WoundTicks = 4;   // one per second
-
-        private sealed class Wound { public HealthComponent Victim; public float PerTick; public int TicksLeft; }
-        private static readonly List<Wound> wounds = new List<Wound>();
-        private static bool bleeding;
-
-        internal static void Init()
-        {
-            RecalculateStatsAPI.GetStatCoefficients += (body, args) =>
-            {
-                var counts = Q.Counts(body, DLC4Content.Items.HexCurse);
-                if (Q.Any(counts)) args.baseCurseAdd += Q.Sum(counts, ExtraCurse);
-            };
-            GlobalEventManager.onServerDamageDealt += OnHit;
-            Ticker.Every(1f, Tick);
-            Run.onRunStartGlobal += _ => wounds.Clear();
-        }
-
-        private static void OnHit(DamageReport report)
-        {
-            var victim = report.victimBody;
-            if (bleeding || !victim || report.damageDealt <= 0f || report.dotType != DotController.DotIndex.None || !report.victim.alive) return;
-            var tier = Q.Highest(Q.Counts(victim, DLC4Content.Items.HexCurse));
-            if (tier == QualityTier.None || !Util.CheckRoll(Q.Stack(Q.Counts(victim, DLC4Content.Items.HexCurse), WoundChance))) return;
-            wounds.Add(new Wound { Victim = report.victim, PerTick = report.damageDealt * Q.Stack(Q.Counts(victim, DLC4Content.Items.HexCurse), WoundDamage) / WoundTicks, TicksLeft = WoundTicks });
-            Refresh(victim);
-        }
-
-        private static void Tick()
-        {
-            bleeding = true;
-            try
-            {
-                foreach (var wound in wounds.ToList())
-                {
-                    if (!wound.Victim || !wound.Victim.alive || wound.TicksLeft <= 0) { wounds.Remove(wound); continue; }
-                    wound.TicksLeft--;
-                    wound.Victim.TakeDamage(new DamageInfo
-                    {
-                        damage = wound.PerTick,
-                        position = wound.Victim.body ? wound.Victim.body.corePosition : wound.Victim.transform.position,
-                        procCoefficient = 0f,
-                        damageColorIndex = DamageColorIndex.Bleed,
-                        damageType = DamageType.BypassArmor | DamageType.BypassBlock
-                    });
-                    if (wound.TicksLeft <= 0) wounds.Remove(wound);
-                    if (wound.Victim && wound.Victim.body) Refresh(wound.Victim.body);
-                }
-            }
-            finally { bleeding = false; }
-        }
-
-        private static void Refresh(CharacterBody body)
-        {
-            var open = wounds.Count(w => w.Victim && w.Victim.body == body);
-            if (body.GetBuffCount(CustomBuffs.Wounded) != open) body.SetBuffCount(CustomBuffs.Wounded.buffIndex, open);
-        }
-    }
-
-    // Hex of Patience: outside the charging Teleporter you take extra, growing damage, and every 3 seconds
-    // may get a random debuff or even be executed.
-    internal static class HexOfPatience
-    {
-        private static readonly T4 DamagePerSecond = new T4(0.005f, 0.01f, 0.025f, 0.05f);   // of max health
-        private const float Growth = 0.125f;
-        private static readonly T4 DebuffChance = new T4(20f, 40f, 100f, 100f);
-        private static readonly T4 ExecuteChance = new T4(0.5f, 1f, 3f, 10f);
-        private static readonly Dictionary<CharacterBody, float> outside = new Dictionary<CharacterBody, float>();
-        private static int tick;
-
-        private static readonly BuffDef[] Debuffs =
-        {
-            RoR2Content.Buffs.Slow50, RoR2Content.Buffs.Cripple, RoR2Content.Buffs.HealingDisabled, RoR2Content.Buffs.BeetleJuice
-        };
-
-        internal static void Init()
-        {
-            Ticker.Every(1f, Tick);
-        }
-
-        private static void Tick()
-        {
-            var teleporter = TeleporterInteraction.instance;
-            var tier = Dlc.TeamHighest(DLC4Content.Items.OutOfTPRadius);
-            if (!teleporter || !teleporter.isCharging || tier == QualityTier.None || !teleporter.holdoutZoneController)
-            {
-                outside.Clear();
-                return;
-            }
-            tick++;
-            foreach (var member in TeamComponent.GetTeamMembers(TeamIndex.Player))
-            {
-                var body = member ? member.body : null;
-                if (!body || !body.healthComponent || !body.healthComponent.alive || !body.isPlayerControlled) continue;
-                if (teleporter.holdoutZoneController.IsBodyInChargingRadius(body)) { outside.Remove(body); continue; }
-                float seconds;
-                outside.TryGetValue(body, out seconds);
-                outside[body] = seconds + 1f;
-                var health = body.healthComponent;
-                health.TakeDamage(new DamageInfo
-                {
-                    damage = health.fullCombinedHealth * DamagePerSecond[tier] * Mathf.Pow(1f + Growth, Mathf.Floor(seconds / 10f)),
-                    position = body.corePosition,
-                    procCoefficient = 0f,
-                    damageColorIndex = DamageColorIndex.Void,
-                    damageType = DamageType.BypassArmor | DamageType.BypassBlock
-                });
-                if (tick % 3 != 0) continue;
-                if (Util.CheckRoll(DebuffChance[tier])) body.AddTimedBuff(Debuffs[Random.Range(0, Debuffs.Length)], 3f);
-                if (Util.CheckRoll(ExecuteChance[tier])) health.Suicide();
-            }
-        }
-    }
-
-    // Hex of Rain: difficulty rises faster (Legendary: +100%).
-    internal static class HexOfRain
-    {
-        // Each quality copy counts as this many 25% stacks: 30% = 1.2, 35% = 1.4, 45% = 1.8, 100% = 4.
-        private static readonly T4 Stacks = new T4(1.2f, 1.4f, 1.8f, 4f);
-
-        internal static void Init()
-        {
-            Hooks.Transpile(typeof(Run), "RecalculateDifficultyCoefficentInternal", typeof(HexOfRain), nameof(Patch));
-        }
-
-        private static float Adjust(float count)
-        {
-            foreach (var player in PlayerCharacterMasterController.instances)
-            {
-                var counts = Q.Counts(player ? player.master : null, DLC4Content.Items.IncreasedDifficulty);
-                count += Q.Sum(counts, Stacks) - counts.TotalQualityCount;
-            }
-            return count;
-        }
-
-        private static IEnumerable<CodeInstruction> Patch(IEnumerable<CodeInstruction> instructions)
-        {
-            var total = AccessTools.Method(typeof(Util), nameof(Util.GetTotalItemCountFromTeam), new[] { typeof(Util.GetTotalItemCountFromTeamArgs) });
-            var list = instructions.ToList();
-            for (var i = 0; i < list.Count - 1; i++)
-            {
-                if (list[i].Calls(total) && list[i + 1].opcode == OpCodes.Conv_R4)
-                {
-                    list.Insert(i + 2, new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(HexOfRain), nameof(Adjust))));
-                    break;
-                }
-            }
-            return list;
-        }
-    }
-
-    // Hex of Strife: a chance of more Mountain effects.
-    internal static class HexOfStrife
-    {
-        private static readonly T4 ExtraChance = new T4(10f, 25f, 60f, 100f);
-        private static readonly T4 Extra = new T4(1f, 1f, 2f, 3f);
-        private static readonly ConditionalWeakTable<TeleporterInteraction, StrongBox<int>> extra = new ConditionalWeakTable<TeleporterInteraction, StrongBox<int>>();
-
-        internal static void Init()
-        {
-            Hooks.Patch(typeof(TeleporterInteraction), "RecalculateHexMountainCount", typeof(HexOfStrife), postfix: nameof(After));
-        }
-
-        private static void After(TeleporterInteraction __instance)
-        {
-            if (!NetworkServer.active) return;
-            var tier = Dlc.TeamHighest(DLC4Content.Items.HexMountain);
-            if (tier == QualityTier.None) return;
-            var box = extra.GetValue(__instance, _ => new StrongBox<int>(-1));
-            if (box.Value < 0)
-            {
-                box.Value = Util.CheckRoll(ExtraChance[tier]) ? (int)Extra[tier] : 0;   // rolled once per Teleporter
-            }
-            __instance.hexBonusStacks += box.Value;
         }
     }
 }

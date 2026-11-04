@@ -331,6 +331,59 @@ namespace MoreQuality
             });
         }
 
+        // A glowing head that travels from EffectData.start to EffectData.origin, leaving a trail: shards, links, snatches.
+        public static GameObject Streak(string name, Color color, float travelTime, string sound)
+        {
+            return Effect(name, travelTime + 1.5f, sound, root =>
+            {
+                Particles(root, "Trail", new Spec { Color = color, Size = 0.3f, Lifetime = 0.35f, Rate = 90f, Shape = ParticleSystemShapeType.Sphere, Radius = 0.05f, Shrink = true });
+                Particles(root, "Head", new Spec { Color = color, Size = 0.6f, Lifetime = 0.1f, Rate = 40f, Shape = ParticleSystemShapeType.Sphere, Radius = 0.01f, Local = true });
+                root.gameObject.AddComponent<StreakMover>().duration = travelTime;
+            });
+        }
+
+        internal sealed class StreakMover : MonoBehaviour
+        {
+            public float duration = 0.25f;
+            private Vector3 from, to;
+            private float start = -1f;
+
+            private Transform shard;
+            private ParticleSystem impact;
+
+            private void Start()
+            {
+                var component = GetComponent<EffectComponent>();
+                to = transform.position;
+                from = component && component.effectData != null ? component.effectData.start : to;
+                transform.position = from;
+                if (to != from) transform.rotation = Quaternion.LookRotation(to - from);
+                shard = transform.Find("Shard");
+                var child = transform.Find("Impact");
+                impact = child ? child.GetComponent<ParticleSystem>() : null;
+                start = Time.time;
+            }
+
+            private void Update()
+            {
+                if (start < 0f) return;
+                var t = Mathf.Clamp01((Time.time - start) / Mathf.Max(0.01f, duration));
+                transform.position = Vector3.Lerp(from, to, t);
+                if (shard) shard.Rotate(0f, 0f, 900f * Time.deltaTime, Space.Self);
+                if (t < 1f) return;
+                start = -1f;
+                foreach (var ps in GetComponentsInChildren<ParticleSystem>()) if (ps != impact) ps.Stop(true, ParticleSystemStopBehavior.StopEmitting);
+                if (shard) shard.gameObject.SetActive(false);
+                if (impact) impact.Play();
+            }
+        }
+
+        public static void SpawnStreak(GameObject effect, Vector3 from, Vector3 to)
+        {
+            if (!effect) return;
+            EffectManager.SpawnEffect(effect, new EffectData { origin = to, start = from, scale = 1f }, true);
+        }
+
         // A short-lived (genericFloat seconds) puddle of rising particles: zones and fields.
         public static GameObject Zone(string name, Color color, Color motes, string sound)
         {
@@ -386,6 +439,114 @@ namespace MoreQuality
             }
         }
 
+        // Swings a scythe every second: a fast slash, then a slower recovery. Each swing picks a new wind-up,
+        // a new end and a new tilt, so no two slashes look the same.
+        internal sealed class Swing : MonoBehaviour
+        {
+            public float period = 1f;
+            private Quaternion rest;
+            private int cycle = -1;
+            private Vector3 from, to, recover;
+
+            private void Start() { rest = transform.localRotation; recover = Raised(); }
+
+            private static Vector3 Raised() { return new Vector3(UnityEngine.Random.Range(-90f, -50f), UnityEngine.Random.Range(-30f, 30f), UnityEngine.Random.Range(-35f, 35f)); }
+
+            private void Update()
+            {
+                const float slash = 0.15f;   // share of the second spent slashing
+                var current = Mathf.FloorToInt(Time.time / period);
+                if (current != cycle)
+                {
+                    cycle = current;
+                    from = recover;   // each swing starts where the last one came back to
+                    to = new Vector3(UnityEngine.Random.Range(60f, 110f), UnityEngine.Random.Range(-40f, 40f), UnityEngine.Random.Range(-30f, 30f));
+                    recover = Raised();
+                }
+                var t = Mathf.Repeat(Time.time, period) / period;
+                var angles = t < slash
+                    ? Vector3.Lerp(from, to, Mathf.SmoothStep(0f, 1f, t / slash))
+                    : Vector3.Lerp(to, recover, Mathf.SmoothStep(0f, 1f, (t - slash) / (1f - slash)));
+                transform.localRotation = rest * Quaternion.Euler(angles);
+            }
+        }
+
+        // A one-shot swoop: the "Pivot" child swings its hanging figure through the middle (past the target) and
+        // out the other side. Every swoop is different: its side, arc, tilt, length, speed and sideways drift are
+        // random, and the figure leans into the swing and wobbles like a robe in flight.
+        internal sealed class Pendulum : MonoBehaviour
+        {
+            private Transform pivot, figure;
+            private float start, duration, from, to, roll, drift, seed;
+            private Vector3 figureRest;
+
+            private void Start()
+            {
+                pivot = transform.Find("Pivot");
+                figure = pivot ? pivot.Find("Reaper") : null;
+                if (figure) figureRest = figure.localPosition;
+                transform.rotation = Quaternion.Euler(0f, UnityEngine.Random.Range(0f, 360f), 0f);
+                duration = UnityEngine.Random.Range(0.7f, 1.05f);
+                from = UnityEngine.Random.Range(-95f, -55f);
+                to = UnityEngine.Random.Range(50f, 95f);
+                roll = UnityEngine.Random.Range(-35f, 35f);
+                drift = UnityEngine.Random.Range(-2f, 2f);
+                seed = UnityEngine.Random.Range(0f, 100f);
+                if (pivot)
+                {
+                    pivot.localPosition = new Vector3(UnityEngine.Random.Range(-1f, 1f), UnityEngine.Random.Range(5f, 7f), 0f);
+                    pivot.localScale = Vector3.zero;
+                }
+                if (figure) figure.localPosition = figureRest * UnityEngine.Random.Range(0.8f, 1.15f);
+                start = Time.time;
+            }
+
+            private void LateUpdate()
+            {
+                if (!pivot) return;
+                var t = Mathf.Clamp01((Time.time - start) / duration);
+                transform.rotation = Quaternion.Euler(0f, transform.rotation.eulerAngles.y, 0f);   // ignore the followed body's tilt
+                var eased = Mathf.SmoothStep(0f, 1f, t);
+                pivot.localRotation = Quaternion.Euler(0f, 0f, roll) * Quaternion.Euler(Mathf.Lerp(from, to, eased), drift * Mathf.Sin(eased * Mathf.PI) * 10f, 0f);
+                if (figure)
+                {
+                    // Lean into the swing (fastest in the middle), plus a restless flutter.
+                    var lean = Mathf.Sin(eased * Mathf.PI) * 35f;
+                    var time = (Time.time + seed) * 3f;
+                    var flutter = new Vector3((Mathf.PerlinNoise(time, 0.1f) - 0.5f) * 40f, (Mathf.PerlinNoise(0.3f, time) - 0.5f) * 60f, (Mathf.PerlinNoise(time, time) - 0.5f) * 40f);
+                    figure.localRotation = Quaternion.Euler(lean + flutter.x, flutter.y, flutter.z);
+                }
+                var size = t < 0.15f ? t / 0.15f : t > 0.8f ? (1f - t) / 0.2f : 1f;
+                pivot.localScale = Vector3.one * Mathf.Clamp01(size);
+                if (t >= 1f)
+                {
+                    foreach (var ps in GetComponentsInChildren<ParticleSystem>()) ps.Stop(true, ParticleSystemStopBehavior.StopEmitting);
+                    enabled = false;
+                }
+            }
+        }
+
+        // Lightning inside a cloud: its lights flare up now and then.
+        internal sealed class Flicker : MonoBehaviour
+        {
+            private Light[] lights;
+            private float baseIntensity, next, until;
+
+            private void Start()
+            {
+                lights = GetComponentsInChildren<Light>();
+                baseIntensity = lights.Length > 0 ? lights[0].intensity : 1f;
+                next = Time.time + UnityEngine.Random.Range(1f, 4f);
+            }
+
+            private void Update()
+            {
+                if (Time.time >= next) { until = Time.time + UnityEngine.Random.Range(0.05f, 0.2f); next = Time.time + UnityEngine.Random.Range(1.5f, 5f); }
+                var intensity = Time.time < until ? baseIntensity * 6f : baseIntensity;
+                foreach (var light in lights) if (light) light.intensity = intensity;
+            }
+        }
+
         internal sealed class Spinner : MonoBehaviour
         {
             public float degreesPerSecond = 90f;
@@ -411,16 +572,40 @@ namespace MoreQuality
             public GameObject Template;
             public Func<CharacterBody, float> Scale;   // radius for the template (built at 1m)
             public bool AtFeet;
+            public bool OverHead;
         }
 
         private static readonly List<Entry> entries = new List<Entry>();
         private static readonly Dictionary<KeyValuePair<CharacterBody, BuffDef>, GameObject> shown = new Dictionary<KeyValuePair<CharacterBody, BuffDef>, GameObject>();
 
         // While `buff` is on a body, a copy of `template` follows it.
-        public static void Show(BuffDef buff, GameObject template, Func<CharacterBody, float> scale, bool atFeet)
+        public static void Show(BuffDef buff, GameObject template, Func<CharacterBody, float> scale, bool atFeet, bool overHead = false)
         {
             if (entries.Count == 0) RoR2Application.onFixedUpdate += Update;
-            entries.Add(new Entry { Buff = buff, Template = template, Scale = scale, AtFeet = atFeet });
+            entries.Add(new Entry { Buff = buff, Template = template, Scale = scale, AtFeet = atFeet, OverHead = overHead });
+        }
+
+        private static readonly Dictionary<CharacterBody, Renderer[]> renderers = new Dictionary<CharacterBody, Renderer[]>();
+
+        // The top of the body's model, centred over it.
+        private static Vector3 Top(CharacterBody body)
+        {
+            Renderer[] found;
+            if (!renderers.TryGetValue(body, out found))
+            {
+                var model = body.modelLocator ? body.modelLocator.modelTransform : null;
+                found = model ? model.GetComponentsInChildren<Renderer>().Where(r => r is MeshRenderer || r is SkinnedMeshRenderer).ToArray() : new Renderer[0];
+                renderers[body] = found;
+            }
+            var any = false;
+            var bounds = new Bounds();
+            foreach (var renderer in found)
+            {
+                if (!renderer || !renderer.enabled) continue;
+                if (!any) { bounds = renderer.bounds; any = true; }
+                else bounds.Encapsulate(renderer.bounds);
+            }
+            return any ? new Vector3(bounds.center.x, bounds.max.y, bounds.center.z) : body.corePosition + Vector3.up * (body.radius * 1.6f);
         }
 
         private static void Update()
@@ -450,12 +635,18 @@ namespace MoreQuality
                             continue;
                         }
                         if (!visual) continue;
-                        visual.transform.position = entry.AtFeet ? body.footPosition + Vector3.up * 0.1f : body.corePosition;
-                        visual.transform.rotation = Quaternion.identity;
+                        visual.transform.position = entry.AtFeet ? body.footPosition + Vector3.up * 0.1f
+                            : entry.OverHead ? Top(body) + Vector3.up * 0.6f
+                            : body.corePosition;
+                        // Facing where the body faces, so offsets like the reaper's stay behind it.
+                        var forward = body.characterDirection ? body.characterDirection.forward : Vector3.forward;
+                        forward.y = 0f;
+                        visual.transform.rotation = forward.sqrMagnitude > 0.01f ? Quaternion.LookRotation(forward) : Quaternion.identity;
                         var scale = entry.Scale != null ? entry.Scale(body) : body.radius;
                         visual.transform.localScale = Vector3.one * scale / Mathf.Max(0.01f, body.gameObject.transform.lossyScale.x);
                     }
                 }
+                foreach (var gone in renderers.Keys.Where(b => !b).ToList()) renderers.Remove(gone);
                 foreach (var key in shown.Keys.Where(k => !k.Key).ToList())
                 {
                     if (shown[key]) UnityEngine.Object.Destroy(shown[key]);

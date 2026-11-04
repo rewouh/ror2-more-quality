@@ -19,6 +19,19 @@ namespace MoreQuality
             return best;
         }
 
+        // The counts of the player holding the best quality of an item (team-wide effects that stack).
+        public static ItemQualityCounts TeamBest(ItemDef item)
+        {
+            var best = ItemQualityCounts.zero;
+            foreach (var player in PlayerCharacterMasterController.instances)
+            {
+                if (!player || !player.master) continue;
+                var counts = Q.Counts(player.master, item);
+                if (Q.Highest(counts) > Q.Highest(best)) best = counts;
+            }
+            return best;
+        }
+
         // The player holding the best quality of an item (for crediting damage), or null.
         public static CharacterBody TeamHolder(ItemDef item, QualityTier tier)
         {

@@ -1,7 +1,7 @@
 MOREQUALITY: DESIGN DOCUMENT (v8)
 =================================
 Mod versions: Starstorm2 0.6.46, Quality 0.8.5, Risk of Rain 2 with Hallowed Concepts
-Mod release:  0.3.1 (Thunderstore: Rewouh-MoreQuality), beta
+Mod release:  0.4.0 (Thunderstore: Rewouh-MoreQuality), beta
 
 The mod adds Quality tiers to items Quality doesn't cover itself, in two independent parts:
 
@@ -479,66 +479,92 @@ VILE CENSER
 
 HEXES (14)
 ==========
-A quality Hex is stronger (worse). Its payoff is the cleansing guarantee above.
+A quality Hex keeps its normal effect and adds a new, nastier twist that changes how you play.
+Its payoff is the cleansing guarantee above (and the Quality Hand of Death).
 
 HEX OF ACCELERATION   Base: ground is slippery; acceleration -40% (+30% per stack).
-  Quality: every 3 seconds the penalty swings between -40% and -50 / 60 / 75 / 95%.
+  "Gale": a wind sweeps the stage and pushes every player at 3 / 6 / 12 / 20 m/s, turning to a
+  new direction every 20 / 15 / 12 / 8s. Wind streaks show its direction. Enemies aren't pushed.
 
 HEX OF BLINDNESS      Base: vision limited to 100m (-50% per stack).
-  Quality: 65 / 40 / 20 / 1m. Enemies beyond your vision deal +15 / 30 / 75 / 150% damage
-  to you.
+  "Phantoms": every 12 / 9 / 6 / 4s, 1 / 2 / 3 / 5 phantom copies of nearby enemies appear
+  around you. They look real but deal no damage, give nothing, and burst into smoke on the
+  first hit (or after 20s). Only you see your phantoms: other players' games hide them.
 
 HEX OF FAMINE         Base: all healing -40% (+40% per stack).
-  Quality: -45 / 50 / 65 / 95%. The healing you lose goes to the nearest enemy within 40m:
-  it heals the same share of its own max health, x0.3 / 0.6 / 1.5 / 3.
+  "Hungry": a hunger bar under your health bar. It empties over 90 / 60 / 40 / 25s. Healing
+  fills it first (healing 50% of your max health fills it), and only what's left heals you.
+  While it's empty you starve, losing 1 / 2 / 4 / 8% max health per second.
 
 HEX OF GREED          Base: every 15s, share 1 (+1) random item of yours with 3 enemies.
-  Quality: every 13 / 11 / 8 / 5s, with 3 / 4 / 5 / 8 enemies.
+  "Pickpockets": a small, non-elite monster close to you (4m) can snatch one of your items:
+  5 / 10 / 25 / 45% chance per second. Its icon floats over the thief, which gets
+  +40 / 70 / 120 / 200% speed and runs away. Kill it to drop the item back; if it stays over
+  40m away for 8 / 7 / 6 / 5s, it escapes with it. After a theft, nobody can steal from you again
+  for a random 15-30 / 12-25 / 8-20 / 5-15s.
 
 HEX OF HAUNTING       Base: a Poltergeist every 60s (-25% per stack) throws interactables at you.
-  Quality: Poltergeists deal +25 / 50 / 125 / 250% damage, have 25 / 50 / 100 / 100%
-  chance to gain a random boon (armor, attack speed, speed, crit or damage), and are immune
-  for 1 / 2 / 4 / 8s when they appear.
-  (A Poltergeist dies by itself once it no longer carries an interactable: that's the DLC.)
+  "Ghost carriers": items that land within 40m of you get grabbed after 0.6 / 0.4 / 0.2 / 0s by
+  a wisp (a real Lesser Wisp with its AI off: it can't attack, walls stop it) that flies them
+  away from you, +75 / 150 / 300 / 600% faster, immune for its first 1 / 1.5 / 2 / 3s. Shoot it
+  or catch it (within 3m) to make it drop
+  the item; after 20s it lets go of the item where it is. A dropped item is never grabbed again.
 
 HEX OF LEAPING        Base: each jump lowers jump height by 25%, recovering over 6s (+6s).
   Quality: -30 / 35 / 50 / 75% per jump, and each jump pushes you sideways in a random
   direction at 5 / 10 / 25 / 50 m/s.
 
 HEX OF LOSS           Base: every 30s, 10% (+10%) of your items are disabled.
-  Quality: 15 / 25 / 40 / 60%.
+  "Slippery fingers": when one of your items triggers (its proc, or a quality effect's
+  damage), 1 / 2 / 5 / 10% chance that one copy of it slips out and bounces away on the
+  ground (bounce strength 10 / 15 / 25 / 40). It stays there until someone picks it up.
+  Each item can slip at most once every 3s. Pure stat items never trigger, so they're safe.
 
-HEX OF MIMICRY        Base: a Mimic every 60s (-10% per stack).
-  Quality: Mimics gain +20 / 40 / 100 / 200% damage and movement speed, and are immune for
-  1 / 2 / 4 / 8s when they appear.
+HEX OF MIMICRY        Base: a Mimic every 60s (-10% per stack). Mimics swallow you and steal items.
+  "Splitting": a mimic that dies holding stolen items bursts into 2 / 2 / 3 / 3 smaller
+  mimics that share the loot (their items float above them); at Legendary the children split
+  once more. The items only come back when the last one dies.
 
 HEX OF MISFORTUNE     Base: interactables have a 50% chance to give 1 (+1) random debuff.
-  Quality: 60 / 70 / 85 / 100% chance; each debuff has a 20 / 40 / 100 / 100% chance to
-  bring 1 / 1 / 2 / 4 more.
+  "Botched": every interaction has a 20 / 35 / 50 / 80% chance (at most 90%) to fail: you pay
+  the cost, nothing happens, and a puff of cursed smoke plays. You can try again.
 
 HEX OF OSSIFICATION   Base: killing an enemy gives enemies within 30m barrier equal to 100%
                       (+100%) of its max health.
-  Quality: 125 / 150 / 225 / 350%; they are also healed for 20 / 40 / 100 / 100% of their
-  max health, and an elite's death gives its elite powers to them for 4 / 8 / 20 / 40s.
+  "Calcify": enemies you kill leave a cluster of bone spikes (2 / 2.5 / 3 / 4m) that blocks
+  movement and shoots a bone shard at the nearest player every 2 / 1.5 / 1 / 0.6s, for
+  100 / 150 / 250 / 400% of the dead enemy's damage (a spinning bone shard that shatters on
+  impact). The spikes crumble after
+  4 / 6 / 8 / 12s.
 
 HEX OF PAIN           Base: max health -30% (+30% per stack, hyperbolic).
-  Quality: -35 / 40 / 50 / 80%. Hits have a 10 / 20 / 40 / 75% chance to leave a wound
-  ("Wounded", dripping blood) that deals 25 / 50 / 125 / 250% of the hit again over 4s.
+  "Shared pain": every hit you take is also dealt, at 10 / 25 / 60 / 120%, to each ally within
+  15 / 20 / 30 / 40m: players, drones, turrets, summons (a red thread links you). With no ally
+  nearby, an echo of 5 / 10 / 25 / 50% of the hit hits you again half a second later.
 
 HEX OF PATIENCE       Base: outside the Teleporter radius you take 1% max health, growing
                       12.5% (+12.5%) every 10s. Affects allies too.
-  Quality: outside the charging Teleporter you also take 0.5 / 1 / 2.5 / 5% max health per
-  second, growing 12.5% every 10s. Every 3s outside: a 20 / 40 / 100 / 100% chance of a
-  random debuff and a 0.5 / 1 / 3 / 10% chance to be executed.
+  "Reaper": outside the charging Teleporter, a hooded reaper floats behind you and swings
+  every second: 1 / 2 / 3 / 5% chance to execute you, doubling every 20 / 15 / 8 / 5s you stay
+  outside. The reaper only appears to swing: each second it swoops through you like a pendulum
+  with a random side, arc, tilt and speed, leaning and fluttering as it flies (dark smoke, red
+  eyes, a scythe leaving a red streak); a hit is a red flash.
 
 HEX OF RAIN           Base: difficulty +25% (+25% per stack).
-  Quality: +30 / 35 / 45 / 100%.
+  "Storm clouds": 1 / 2 / 3 / 4 red storm clouds, 16 / 20 / 26 / 32m wide, drift around the stage
+  at 3 / 4 / 5 / 6 m/s (a body of dark red puffs, lit red underneath), raining under themselves,
+  with flashes of lightning. Enemies under a
+  cloud are enraged: +15 / 30 / 60 / 100% attack speed and damage. Players under one are
+  drenched: -1 / 1 / 2 / 3 luck.
 
 HEX OF STRIFE         Base: the Teleporter gets 1 (+1) Shrine of the Mountain effect, without
                       the extra rewards.
-  Quality: a 10 / 25 / 60 / 100% chance of 1 / 1 / 2 / 3 more (rolled once per Teleporter).
+  "Pass the crown": 1 / 1 / 1 / 2 Teleporter bosses wear a glowing crown (+50 / 100 / 200 /
+  400% health, +25 / 50 / 100 / 200% damage, bigger). When the wearer dies, the crown jumps to
+  the nearest enemy, up to 1 / 2 / 3 / 5 times.
 
-Team-wide hexes (Rain, Strife, Patience) use the best quality on the team.
+Team-wide hexes (Acceleration, Rain, Strife, Patience) use the best quality on the team.
+Quality values marked as chances or strengths stack: extra quality copies add half their value.
 
 Not covered by Part 2: N'tormat Pages, boss items (Whispering Fragment, Mycelium Cap, Peace
 Flower), the new equipment, and the Seed of Insight.
@@ -570,3 +596,13 @@ CHANGELOG OF THIS DOCUMENT
       toxic clouds; Hunter's Sigil much stronger; Man-o'-War summons a real Jellyfish (fixes
       the red orb); Hex of Leaping push and Jet Boots fixed (a hook error broke jumping)
   v9  Quality Hand of Death: a white Hand of Death whose hexes each get a random quality
+  v10 Hexes reworked: each quality Hex keeps its base effect and adds a new twist (Gale,
+      Phantoms, Hungry, Pickpockets, Ghost carriers + Ectoplasm, Slippery fingers, Splitting,
+      Botched, Calcify, Shared pain, Reaper, Blood rain, Pass the crown); Leaping unchanged
+  v11 first test of the Hexes: no effect names in descriptions; Ectoplasm removed; ghosts grab
+      almost instantly; phantoms only visible to their player; pause between thefts; slower Gale;
+      harsher Botched and Reaper; new bone shard, ghost, reaper and crown visuals
+  v12 Haunting's ghosts are now real wisps you can shoot, that can't pass through walls;
+      Rain reworked into storm clouds; the reaper's swings are random and its robe trails
+  v13 wisps faster and immune when they appear; the reaper only appears to swoop in and swing;
+      storm clouds built from puffs

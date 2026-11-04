@@ -12,7 +12,7 @@ namespace MoreQuality.Hallowed
     {
         internal static void Init()
         {
-            RoR2Application.onLoad += Replace;
+            Hooks.OnLoad("hex cost", Replace);
         }
 
         private static void Replace()

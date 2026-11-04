@@ -5,7 +5,7 @@ schemaVersion = "0.0.1"
 namespace = "Rewouh"
 name = "MoreQuality"
 # The real version comes from the git tag (see .github/workflows/publish.yml) and must match Plugin.cs.
-versionNumber = "0.3.4"
+versionNumber = "0.4.0"
 description = "Adds Quality variants with unique effects to Starstorm 2 items and equipment, and to Hallowed Concepts' Hallowed items and Hexes."
 websiteUrl = "https://github.com/rewouh/ror2-more-quality"
 containsNsfwContent = false
@@ -21,6 +21,7 @@ RiskofThunder-R2API_Prefab = "1.1.1"
 RiskofThunder-R2API_ContentManagement = "1.1.0"
 RiskofThunder-R2API_ProcType = "1.0.2"
 RiskofThunder-R2API_Language = "1.1.0"
+RiskofThunder-R2API_Networking = "1.0.4"
 
 [build]
 icon = "./icon.png"

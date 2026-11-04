@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using HarmonyLib;
 using RoR2;
 using UnityEngine;
@@ -23,7 +24,7 @@ namespace MoreQuality
 
         public static void Register()
         {
-            RoR2Application.onLoad += () => { loaded = true; foreach (var entry in owners) TellDpsMeter(entry.Key, entry.Value); };
+            Hooks.OnLoad("DpsMeter", () => { loaded = true; foreach (var entry in owners.ToList()) TellDpsMeter(entry.Key, entry.Value); });
         }
 
         public static GameObject Of(ItemDef item)
@@ -47,6 +48,14 @@ namespace MoreQuality
             if (!item) return "MoreQuality";
             Remember("MoreQuality_" + item.name, item.name);
             return "MoreQuality_" + item.name;
+        }
+
+        // The item whose quality effect dealt this damage, if it went through one of our named inflictors.
+        public static ItemIndex ItemOf(GameObject inflictor)
+        {
+            string owner;
+            if (!inflictor || !owners.TryGetValue(inflictor.name.Replace("(Clone)", ""), out owner)) return ItemIndex.None;
+            return ItemCatalog.FindItemIndex(owner);
         }
 
         private static GameObject Get(string name, string owner)

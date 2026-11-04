@@ -29,7 +29,13 @@ namespace MoreQuality
         public static BuffDef Overcharged; // Universal Charger: the refreshed skill's empowered use
         public static BuffDef GoldRush;    // M.I.D.A.S.: kills pay gold
         public static BuffDef BloodOffering; // Sanguine Chalice: stacks = stored blood, % of max health
-        public static BuffDef Wounded;     // Hex of Pain: stacks = open wounds
+        public static BuffDef Wounded;     // (unused since the Hex rework; kept so saved buff indices don't shift)
+        public static BuffDef Enraged;     // Hex of Rain: stacks = % attack speed and damage
+        public static BuffDef Crowned;     // Hex of Strife: stacks = % health (and half as much damage)
+        public static BuffDef Reaped;      // Hex of Patience: the reaper follows you
+        public static BuffDef Hunger;      // Hex of Famine: stacks = hunger left, 0 to 100 (hidden: shown by the HUD bar)
+        public static BuffDef Phantom;     // Hex of Blindness: an illusion (hidden)
+        public static BuffDef Drenched;    // Hex of Rain: stacks = luck lost under a storm cloud
 
         private static readonly List<KeyValuePair<BuffDef, Func<BuffDef>>> icons = new List<KeyValuePair<BuffDef, Func<BuffDef>>>();
 
@@ -54,8 +60,14 @@ namespace MoreQuality
             GoldRush = Create("bdMoreQualityGoldRush", new Color(1f, 0.8f, 0.2f), false, false, () => RoR2Content.Buffs.CloakSpeed);
             BloodOffering = Create("bdMoreQualityBloodOffering", new Color(0.7f, 0.05f, 0.15f), true, false, () => RoR2Content.Buffs.Bleeding);
             Wounded = Create("bdMoreQualityWounded", new Color(0.6f, 0.1f, 0.1f), true, true, () => RoR2Content.Buffs.Bleeding);
+            Enraged = Create("bdMoreQualityEnraged", new Color(1f, 0.15f, 0.1f), true, false, () => RoR2Content.Buffs.WarCryBuff);
+            Crowned = Create("bdMoreQualityCrowned", new Color(1f, 0.8f, 0.25f), true, false, () => RoR2Content.Buffs.ArmorBoost);
+            Reaped = Create("bdMoreQualityReaped", new Color(0.3f, 0.05f, 0.35f), false, true, () => RoR2Content.Buffs.DeathMark);
+            Hunger = Create("bdMoreQualityHunger", new Color(0.8f, 0.5f, 0.2f), true, false, () => RoR2Content.Buffs.MedkitHeal, true);
+            Phantom = Create("bdMoreQualityPhantom", new Color(0.6f, 0.6f, 0.7f), false, false, () => RoR2Content.Buffs.Cloak, true);
+            Drenched = Create("bdMoreQualityDrenched", new Color(0.55f, 0.1f, 0.15f), true, true, () => RoR2Content.Buffs.Slow50);
 
-            RoR2Application.onLoad += AssignIcons;
+            Hooks.OnLoad("buff icons", AssignIcons);
             RecalculateStatsAPI.GetStatCoefficients += Stats;
             DamageHooks.AddIncoming(Vulnerable);
             Ticker.Every(0.2f, ExpireMarks);
@@ -108,6 +120,12 @@ namespace MoreQuality
             args.moveSpeedMultAdd += empowered;
             if (body.HasBuff(Pinned)) args.moveSpeedRootCount += 1;
             args.moveSpeedReductionMultAdd += Mathf.Min(body.GetBuffCount(Slowed), 90) / 100f;
+            var rage = body.GetBuffCount(Enraged) / 100f;
+            args.attackSpeedMultAdd += rage;
+            args.damageMultAdd += rage;
+            var crown = body.GetBuffCount(Crowned) / 100f;
+            args.healthMultAdd += crown;
+            args.damageMultAdd += crown / 2f;
         }
 
         // Pinned and Hunted enemies take more damage from everyone.

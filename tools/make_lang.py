@@ -341,7 +341,7 @@ ITEMS["VileCenser"] = ("Tendrils link enemies together.", add(per_tier(
     "When a linked enemy dies, each other one has a {1} chance to be " + dmg("executed") + " (not bosses).",
     qs(["10%", "20%", "40%", "75%"], dmg), qs(["3%", "6%", "15%", "30%"]))))
 
-# ---- hexes: a quality hex is worse; cleansing it guarantees a quality choice.
+# ---- hexes: a quality hex keeps its effect and adds a twist; cleansing it guarantees a quality choice.
 CLEANSE = "\n" + Q + " Cleansing it guarantees a choice of its quality."
 
 
@@ -349,65 +349,66 @@ def hex_line(lines):
     return [line + CLEANSE for line in lines]
 
 
-ITEMS["SlipperyGround"] = ("Acceleration swings even lower.", hex_line(per_tier(
-    "All ground becomes " + death("slippery, hindering movement") + ". Your acceleration is reduced by " + death("40%") + " " + stack("+30% per stack") + ", swinging to {0} every " + util("3 seconds") + ".",
-    qs(["50%", "60%", "75%", "95%"], death))))
+ITEMS["SlipperyGround"] = ("A gale sweeps the stage.", hex_line(add(per_tier(
+    "A wind sweeps the stage and pushes every player at {0}, turning to a new direction every {1}.",
+    qs(["3 m/s", "6 m/s", "12 m/s", "20 m/s"], death), qs(["20s", "15s", "12s", "8s"], death)))))
 
-ITEMS["Blindness"] = ("Even less vision; unseen enemies hit harder.", hex_line(per_tier(
-    "Reduces your vision to {0} " + stack("-50% per stack") + ". Enemies beyond your vision deal {1} damage to you.",
-    qs(["65m", "40m", "20m", "1m"], death), qs(["+15%", "+30%", "+75%", "+150%"], death))))
+ITEMS["Blindness"] = ("Phantoms appear around you.", hex_line(add(per_tier(
+    "Every {0}, {1} phantom copies of nearby enemies appear around you. They deal no damage and burst into smoke when hit.",
+    qs(["12s", "9s", "6s", "4s"], death), qs(["1", "2", "3", "5"], death)))))
 
-ITEMS["LowerHealing"] = ("Even less healing, and enemies steal it.", hex_line(per_tier(
-    "All " + heal("healing") + " is reduced by {0} " + stack("+40% per stack") + ". The healing you lose " + death("heals the nearest enemy") + " for the same share of its maximum health, {1}.",
-    qs(["45%", "50%", "65%", "95%"], death), qs(["x0.3", "x0.6", "x1.5", "x3"], death))))
+ITEMS["LowerHealing"] = ("You get hungry.", hex_line(add(per_tier(
+    "A hunger bar empties over {0}. Healing fills it first; while it's empty you starve, losing {1} of your maximum health per second.",
+    qs(["90s", "60s", "40s", "25s"], death), qs(["1%", "2%", "4%", "8%"], death)))))
 
-ITEMS["ShareItemsWithEnemies"] = ("Shares more often, with more enemies.", hex_line(per_tier(
-    "Every {0}, " + death("share a copy") + " of " + dmg("1") + " " + stack("+1 per stack") + " random item from your inventory with {1}.",
-    qs(["13 seconds", "11 seconds", "8 seconds", "5 seconds"]),
-    [util("3 enemies"), q("4 enemies"), q("5 enemies"), q("8 enemies")])))
+ITEMS["ShareItemsWithEnemies"] = ("Small monsters pick your pockets.", hex_line(add(per_tier(
+    "Small, non-elite monsters next to you have {0} chance per second to snatch an item and run away with it, {1} faster. Kill the thief to get it back; if it stays far away for {2}, it escapes with it.",
+    qs(["5%", "10%", "25%", "45%"], death), qs(["40%", "70%", "120%", "200%"], death), qs(["8s", "7s", "6s", "5s"], death)))))
 
-ITEMS["HexHaunting"] = ("Stronger Poltergeists.", hex_line(add(per_tier(
-    "Poltergeists deal {0} damage, have {1} chance to gain a random boon, and are " + death("immune") + " for {2} when they appear.",
-    qs(["+25%", "+50%", "+125%", "+250%"], death), qs(["25%", "50%", "100%", "100%"]), qs(["1s", "2s", "4s", "8s"], death)))))
+ITEMS["HexHaunting"] = ("Wisps carry your loot away.", hex_line(add(per_tier(
+    "Items that land near you are grabbed by a wisp {0} and flown away from you{1}. It is immune for a moment, then shoot it or catch it to make it drop the item; it lets go after 20s.",
+    ["after " + q("0.6s", death), "after " + q("0.4s", death), "after " + q("0.2s", death), q("instantly", death)],
+    [", " + q("75%", death) + " faster", ", " + q("150%", death) + " faster", ", " + q("300%", death) + " faster", ", " + q("600%", death) + " faster"]))))
 
 ITEMS["WeakAssHamstring"] = ("Jumps cost more height and throw you around.", hex_line(per_tier(
     "Jumping " + death("reduces") + " your jump height by {0} and " + death("pushes you sideways") + " in a random direction at {1}. Your jump height " + util("returns gradually") + " over " + util("6s") + " " + stack("+6 per stack") + ". "
     "Additionally, " + death("reduces") + " the amount of distance you can " + death("fall") + " without taking " + death("fall damage") + ".",
     qs(["30%", "35%", "50%", "75%"], death), qs(["5 m/s", "10 m/s", "25 m/s", "50 m/s"], death))))
 
-ITEMS["RoamingItemDisable"] = ("More items disabled.", hex_line(per_tier(
-    "Every " + util("30 seconds") + ", {0} of the items in your inventory " + stack("+10% per stack") + " become " + death("disabled") + ".",
-    qs(["15%", "25%", "40%", "60%"], death))))
+ITEMS["RoamingItemDisable"] = ("Your items slip out of your hands.", hex_line(add(per_tier(
+    "When one of your items triggers, {0} chance that a copy of it slips out and bounces away on the ground.",
+    qs(["1%", "2%", "5%", "10%"], death)))))
 
-ITEMS["Mimicry"] = ("Faster, stronger Mimics.", hex_line(add(per_tier(
-    "Mimics gain {0} " + dmg("damage") + " and " + util("movement speed") + ", and are " + death("immune") + " for {1} when they appear.",
-    qs(["+20%", "+40%", "+100%", "+200%"], death), qs(["1s", "2s", "4s", "8s"], death)))))
+ITEMS["Mimicry"] = ("Mimics split apart when killed.", hex_line(add(per_tier(
+    "A Mimic that dies holding your items bursts into {0} smaller Mimics that share the loot{1}. You get the items back when the last one dies.",
+    qs(["2", "2", "3", "3"], death), ["", "", "", ", and they split again"]))))
 
-ITEMS["RandomDebuffOnInteract"] = ("Debuffs more likely, and more of them.", hex_line(per_tier(
-    "Activating an interactable has a {0} chance to give " + death("1") + " " + stack("+1 per stack") + " " + death("random debuff") + ", each with a {1} chance to bring {2} more. Shrines of Chance guarantee a " + death("random debuff") + " on failure and none on success.",
-    qs(["60%", "70%", "85%", "100%"]), qs(["20%", "40%", "100%", "100%"]), qs(["1", "1", "2", "4"], death))))
+ITEMS["RandomDebuffOnInteract"] = ("Interactions can fail.", hex_line(add(per_tier(
+    "Every interaction has a {0} chance to fail. You pay the cost, and nothing happens.",
+    qs(["20%", "35%", "50%", "80%"], death)))))
 
-ITEMS["BarrierEnemiesOnKill"] = ("More barrier and healing for enemies.", hex_line(per_tier(
-    "Killing an enemy grants {0} " + stack("+100% per stack") + " of their maximum health as " + heal("temporary barrier") + " to " + death("all enemies") + " within " + dmg("30m") + " " + stack("+15m per stack") + ". "
-    "They are also " + heal("healed") + " for {1} of their maximum health, and an elite's death passes its " + death("elite powers") + " to them for {2}.",
-    qs(["125%", "150%", "225%", "350%"], heal), qs(["20%", "40%", "100%", "100%"], heal), qs(["4s", "8s", "20s", "40s"], death))))
+ITEMS["BarrierEnemiesOnKill"] = ("Dead enemies leave bone spikes.", hex_line(add(per_tier(
+    "Enemies you kill leave {0} of bone spikes that block the way and shoot a shard at you every {1} for {2} of their damage, crumbling after {3}.",
+    qs(["a small cluster", "a cluster", "a big cluster", "a huge cluster"], death), qs(["2s", "1.5s", "1s", "0.6s"], death),
+    qs(["100%", "150%", "250%", "400%"], death), qs(["4s", "6s", "8s", "12s"], death)))))
 
-ITEMS["HexCurse"] = ("Even less health, and hits leave wounds.", hex_line(per_tier(
-    "Reduces your " + heal("maximum health") + " by {0} " + stack("+30% per stack") + ". Hits have a {1} chance to leave a " + death("wound") + " that deals {2} of the hit again over " + util("4s") + ".",
-    qs(["35%", "40%", "50%", "80%"], death), qs(["10%", "20%", "40%", "75%"], death), qs(["25%", "50%", "125%", "250%"], death))))
+ITEMS["HexCurse"] = ("Your pain is shared with your allies.", hex_line(add(per_tier(
+    "Every hit you take is also dealt at {0} to each ally within {1} (players, drones, turrets, summons). With no ally nearby, {2} of the hit comes back to you.",
+    qs(["10%", "25%", "60%", "120%"], death), qs(["15m", "20m", "30m", "40m"], death), qs(["5%", "10%", "25%", "50%"], death)))))
 
-ITEMS["OutOfTPRadius"] = ("Straying is punished harder.", hex_line(add(per_tier(
-    "Outside the charging Teleporter you also take {0} of your " + death("maximum health") + " per second, growing " + death("12.5%") + " every 10s. "
-    "Every " + util("3s") + " outside, {1} chance of a " + death("random debuff") + " and {2} chance to be " + death("executed") + ".",
-    qs(["0.5%", "1%", "2.5%", "5%"], death), qs(["20%", "40%", "100%", "100%"], death), qs(["0.5%", "1%", "3%", "10%"], death)))))
+ITEMS["OutOfTPRadius"] = ("A reaper follows you outside the zone.", hex_line(add(per_tier(
+    "Outside the charging Teleporter, a reaper swings at you every second, with a {0} chance to " + death("execute") + " you that doubles every {1} you stay out.",
+    qs(["1%", "2%", "3%", "5%"], death), qs(["20s", "15s", "8s", "5s"], death)))))
 
-ITEMS["IncreasedDifficulty"] = ("Difficulty rises faster.", hex_line(per_tier(
-    "Increases " + death("Difficulty") + " by {0} " + stack("+25% per stack") + ".",
-    qs(["30%", "35%", "45%", "100%"], death))))
+ITEMS["IncreasedDifficulty"] = ("Storm clouds drift over the stage.", hex_line(add(per_tier(
+    "{0} red storm {1} around the stage, {2} wide. Enemies under one are enraged: {3} attack speed and damage. Under one, you lose {4} " + util("luck") + ".",
+    qs(["1", "2", "3", "4"], death), ["cloud drifts", "clouds drift", "clouds drift", "clouds drift"],
+    qs(["16m", "20m", "26m", "32m"], death), qs(["+15%", "+30%", "+60%", "+100%"], death), qs(["1", "1", "2", "3"], death)))))
 
-ITEMS["HexMountain"] = ("More Mountain effects.", hex_line(per_tier(
-    "The Teleporter receives " + death("1") + " " + stack("+1 per stack") + " Shrine of the Mountain effects, with a {0} chance of {1} more, " + death("without the extra rewards") + ".",
-    qs(["10%", "25%", "60%", "100%"]), qs(["1", "1", "2", "3"], death))))
+ITEMS["HexMountain"] = ("Teleporter bosses pass a crown around.", hex_line(add(per_tier(
+    "{0} a crown ({1} health, {2} damage). When the wearer dies, the crown jumps to the nearest enemy, up to {3} times.",
+    ["The Teleporter boss wears", "The Teleporter boss wears", "The Teleporter boss wears", q("2", death) + " Teleporter bosses wear"],
+    qs(["+50%", "+100%", "+200%", "+400%"], death), qs(["+25%", "+50%", "+100%", "+200%"], death), qs(["1", "2", "3", "5"], death)))))
 
 # ---------------------------------------------------------------- buffs (LookingGlass tooltips)
 
@@ -430,7 +431,10 @@ BUFFS = {
     "bdMoreQualityOvercharged": ("Overcharged", "Universal Charger: more damage for a moment."),
     "bdMoreQualityGoldRush": ("Gold Rush", "M.I.D.A.S.: every kill pays gold."),
     "bdMoreQualityBloodOffering": ("Blood Offering", "Sanguine Chalice: stored blood, 1% of your max health per stack. Start sprinting to release it as a wave."),
-    "bdMoreQualityWounded": ("Wounded", "Hex of Pain: open wounds keep hurting you."),
+    "bdMoreQualityEnraged": ("Enraged", "Under a storm cloud: +1% attack speed and damage per stack."),
+    "bdMoreQualityDrenched": ("Drenched", "Under a storm cloud: -1 luck per stack."),
+    "bdMoreQualityCrowned": ("Crowned", "Pass the crown: +1% health and +0.5% damage per stack. When it dies, the crown jumps."),
+    "bdMoreQualityReaped": ("Reaped", "Hex of Patience: the reaper swings at you every second. Get back to the Teleporter!"),
 }
 
 

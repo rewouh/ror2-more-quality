@@ -22,7 +22,7 @@ namespace MoreQuality.Items
         {
             Hooks.Patch(typeof(SS2.Items.JetBoots.Behavior), "OnJump", typeof(JetBoots), prefix: nameof(BeforeJump), postfix: nameof(AfterJump));
             Hooks.Patch(typeof(SS2.Items.JetBoots), "ProcessJump", typeof(JetBoots), prefix: nameof(BeforeBlast), postfix: nameof(AfterBlast));
-            RoR2Application.onLoad += () => firePool = Addressables.LoadAssetAsync<GameObject>("RoR2/DLC1/Molotov/MolotovProjectileDotZone.prefab").WaitForCompletion();
+            Hooks.OnLoad("Jet Boots fire pool", () => firePool = Addressables.LoadAssetAsync<GameObject>("RoR2/DLC1/Molotov/MolotovProjectileDotZone.prefab").WaitForCompletion());
         }
 
         private static void BeforeJump(SS2.Items.JetBoots.Behavior __instance, out int __state)

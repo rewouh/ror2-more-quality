@@ -23,7 +23,7 @@ namespace MoreQuality
 
         public static void Register()
         {
-            RoR2Application.onLoad += () => { MapTokens(); RepairNames(); };
+            Hooks.OnLoad("quality names", () => { MapTokens(); RepairNames(); });
             Run.onRunStartGlobal += _ => RepairNames();
             Language.onCurrentLanguageChanged += RepairNames;
             Hooks.Patch(typeof(Language), nameof(Language.GetLocalizedStringByToken), typeof(BaseText), postfix: nameof(Substitute));
@@ -73,6 +73,12 @@ namespace MoreQuality
         }
 
         private static void RepairNames()
+        {
+            try { Repair(); }
+            catch (System.Exception e) { MoreQualityPlugin.Log.LogError("Repairing quality item names failed: " + e); }
+        }
+
+        private static void Repair()
         {
             var language = Language.currentLanguage;
             if (language == null) return;

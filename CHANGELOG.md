@@ -1,5 +1,24 @@
 # Changelog
 
+## 0.4.0
+
+- **Quality Hexes reworked.** A quality Hex keeps its normal effect and adds a new twist that changes how you play, instead of just being stronger:
+  - Acceleration, **Gale**: a wind sweeps the stage and pushes every player.
+  - Blindness, **Phantoms**: harmless illusions of nearby enemies.
+  - Famine, **Hungry**: a hunger bar on your HUD; starve when it's empty.
+  - Greed, **Pickpockets**: small monsters snatch an item and flee.
+  - Haunting, **Ghost carriers**: wisps grab items that land near you and fly away with them; shoot them to get the item back.
+  - Loss, **Slippery fingers**: items that trigger can slip out of your inventory.
+  - Mimicry, **Splitting**: Mimics burst into smaller ones holding your items.
+  - Misfortune, **Botched**: interactions can fail, and you still pay.
+  - Ossification, **Calcify**: bone spikes that block and shoot.
+  - Pain, **Shared pain**: your damage hits your allies too.
+  - Patience, **Reaper**: a reaper swings at you outside the zone.
+  - Rain, **Storm clouds**: red storm clouds drift around, enraging enemies and drenching you (less luck).
+  - Strife, **Pass the crown**: the Teleporter boss's crown jumps to the next enemy.
+  - Leaping is unchanged.
+- Fixed: a possible hang at 99% loading (seen with 0.3.4). An error in any of MoreQuality's load steps is now logged instead of stopping the game from loading.
+
 ## 0.3.4
 
 - Fixed for real: quality item names showing raw tokens (SS2_ITEM_..._NAME), which still happened for players who weren't the host. The names are now repaired after loading, at every run start and on a language change.

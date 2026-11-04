@@ -1,5 +1,6 @@
 using System;
 using HarmonyLib;
+using RoR2;
 
 namespace MoreQuality
 {
@@ -11,6 +12,17 @@ namespace MoreQuality
             var original = AccessTools.Method(target, method);
             if (original == null) throw new MissingMethodException(target.FullName, method);
             MoreQualityPlugin.Harmony.Patch(original, transpiler: new HarmonyMethod(AccessTools.Method(owner, transpiler)));
+        }
+
+        // RoR2Application.onLoad runs while the loading screen sits at 99%: an exception there stops the
+        // game from ever finishing loading. Everything we run at that moment goes through here.
+        public static void OnLoad(string what, Action action)
+        {
+            RoR2Application.onLoad += () =>
+            {
+                try { action(); }
+                catch (Exception e) { MoreQualityPlugin.Log.LogError("Load step failed (" + what + "): " + e); }
+            };
         }
 
         public static void Patch(Type target, string method, Type owner, string prefix = null, string postfix = null, Type[] args = null)

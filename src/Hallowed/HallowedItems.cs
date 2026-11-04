@@ -307,7 +307,7 @@ namespace MoreQuality.Hallowed
         {
             // Runs before the demon's own reaction to its host dying (it detaches, or dies if barely charged).
             Hooks.Patch(typeof(DreamDemonProjectileController), "OnCharacterDeath", typeof(NightmareDemon), prefix: nameof(HostDied));
-            RoR2Application.onLoad += () => demonPrefab = DemonPrefab();
+            Hooks.OnLoad("Nightmare Demon", () => demonPrefab = DemonPrefab());
             Hooks.Patch(typeof(ProjectileManager), nameof(ProjectileManager.FireProjectile), typeof(NightmareDemon), prefix: nameof(StrongerDemon), args: new[] { typeof(FireProjectileInfo) });
             Hooks.Patch(typeof(DreamDemonProjectileController), "FixedUpdate", typeof(NightmareDemon), prefix: nameof(DemonUpdate));
         }
