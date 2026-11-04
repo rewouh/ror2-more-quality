@@ -19,27 +19,27 @@ Values are Uncommon / Rare / Epic / Legendary.
 | Item | Quality effect |
 |---|---|
 | Armed Backpack | Huge, exploding missiles: x6 / x10.5 / x18 / x36 size, 4 / 7 / 11 / 20m blast |
-| Broken Blood Tester | Heals grant **Blood Rush**: +15 / 30 / 60 / 120% movement speed, +10 / 20 / 50 / 100% attack speed, +5 / 10 / 25 / 50% damage, +5 / 10 / 25 / 50 armor |
+| Broken Blood Tester | Each heal briefly grants +15 / 30 / 60 / 120% movement speed, +10 / 20 / 50 / 100% attack speed, +5 / 10 / 25 / 50% damage, +5 / 10 / 25 / 50 armor |
 | Coffee Bag | More beans (12 / 14 / 20 / 30%). Beans within 8 / 15 / 35 / 70m fly to you. Grabbing a bean with 5+ beans cuts all cooldowns by 0.5 / 1 / 2.5 / 5s |
 | Detritive Trematode | Infestations spread to 1 / 2 / 5 / 10 nearby enemies when the host dies |
 | Empty Diary | Also gives a random item of the diary's quality when consumed |
 | Fork | 20 / 32 / 68 / 128% base damage per stack. Every 6 / 5 / 3 / 2 hits on the same enemy pin it in place for 0.5 / 0.8 / 1.5 / 3s; pinned enemies take +10 / 20 / 50 / 100% damage |
 | Guarding Amulet | Hits from behind grant barrier (10 / 20 / 50 / 100% of the hit) and stun the attacker for 0.5 / 1 / 2 / 4s |
 | Malice | The splash keeps chaining: 10 / 20 / 50 / 90% chance, up to 2 / 4 / 10 / 20 extra times |
-| Molten Coin | Higher ignite chance. Burning enemies drop a flaming coin ($2 / $4 / $10 / $20); picking it up makes you **Molten** for 3 / 4 / 6 / 10s, setting enemies within 5 / 7 / 11 / 16m on fire |
-| Needles | 25 / 30 / 45 / 70% chance for 4 / 5 / 8 / 13 needles, 15 / 30 / 75 / 100% chance to bleed. Needled enemies become **Voodoo dolls** for good; damage to one is copied to all the others at 5 / 10 / 25 / 50% |
+| Molten Coin | Higher ignite chance. Burning enemies drop a flaming coin ($2 / $4 / $10 / $20); picking it up sets enemies within 5 / 7 / 11 / 16m of you on fire for 3 / 4 / 6 / 10s |
+| Needles | 25 / 30 / 45 / 70% chance for 4 / 5 / 8 / 13 needles, 15 / 30 / 75 / 100% chance to bleed. Needled enemies stay linked for good: damage to one of them is copied to all the others at 5 / 10 / 25 / 50% |
 | Universal Charger | Refreshes every 16.4 / 15 / 12 / 9s, 10 / 20 / 50 / 100% chance to refresh all skills. Using the refreshed skill gives +20 / 40 / 100 / 200% damage for 2.5s |
 | Uranium Horseshoe | 25 / 40 / 85 / 160% speed and jump height, 25 / 50 / 80 / 100% less fall damage; landings stomp for up to 150 / 300 / 750 / 1500% |
-| X-4 Stimulant | Your secondary has a 20 / 40 / 70 / 100% chance to grant a random **Stim** boost, and 10 / 20 / 50 / 100% chance of a second one |
+| X-4 Stimulant | Your secondary has a 20 / 40 / 70 / 100% chance to grant a random boost (armor, speed, damage, crit, barrier or regeneration) for 5s, and 10 / 20 / 50 / 100% chance of a second one |
 
 ### Uncommon
 | Item | Quality effect |
 |---|---|
 | Cryptic Source | Burst x1.1 / 1.2 / 1.5 / 2 bigger; each enemy hit refunds 0.5 / 1 / 2.5 / 5s of utility cooldown |
-| Field Accelerator | More charge per kill. In the charging zone: allies attack +5 / 10 / 25 / 50% faster (**Accelerated Field**) and their projectiles fly +10 / 20 / 50 / 100% faster; enemies are slowed by 10 / 20 / 40 / 70% |
-| Hunter's Sigil | Bigger zone that also grants 10 / 20 / 50 / 100% crit. Enemies in the zone are **Hunted**, taking +20 / 40 / 100 / 200% damage until 2 / 3 / 5 / 8s after leaving it |
+| Field Accelerator | More charge per kill. In the charging zone: allies attack +5 / 10 / 25 / 50% faster and their projectiles fly +10 / 20 / 50 / 100% faster; enemies are slowed by 10 / 20 / 40 / 70% |
+| Hunter's Sigil | Bigger zone that also grants 10 / 20 / 50 / 100% crit. Enemies in the zone take +20 / 40 / 100 / 200% damage until 2 / 3 / 5 / 8s after leaving it |
 | Jet Boots | Recharges in 8 / 6 / 4 / 2s with a 10 / 20 / 50 / 90% chance to recharge instantly, bigger blast. Each rocket jump leaves a pool of fire |
-| Man o' War | Kills can release a friendly **Jellyfish** (a real one, on your team) that flies to an enemy and explodes in its electric nova for 300 / 600 / 1500 / 3000% |
+| Man o' War | Kills can release a friendly Jellyfish that flies to an enemy and explodes in its electric nova for 300 / 600 / 1500 / 3000% |
 | Low Quality Speakers | The burst launches enemies 10 / 20 / 40 / 70m high; they take x1 / 1.5 / 2.5 / 4 fall damage on landing |
 | Strange Can | Intoxicated enemies explode on death, spreading 1 / 2 / 5 / 10 intoxicate |
 | Watch Metronome | While charged, it ticks every second (sound and golden pulse); hits in the 0.2 / 0.3 / 0.45 / 0.6s after a tick are crits with +20 / 40 / 100 / 200% damage, and can give a charge back |
@@ -83,7 +83,7 @@ Values are Uncommon / Rare / Epic / Legendary.
 
 - **Hallowed items** get quality variants with stronger effects and new twists.
 - **Hexes** get quality variants that keep their effect and add a nasty new twist. The payoff: every quality Hex drained by a Hallowed Shrine's Hand of Life **guarantees a choice of its quality** among the items it offers. The best tiers go to the best groups first, one per group, so you can actually take them.
-- **Quality Hand of Death:** a Hallowed Shrine's Hand of Death has a 10% chance (configurable) to be a white, glowing quality hand. Every hex it drops gets its own random quality (40% Uncommon, 30% Rare, 20% Epic, 10% Legendary): a gamble, since each one guarantees a choice of its quality when you cleanse it.
+- A Hallowed Shrine's Hand of Death has a 10% chance (configurable) to be a white, glowing quality hand. Every hex it drops gets its own random quality (40% Uncommon, 30% Rare, 20% Epic, 10% Legendary): a gamble, since each one guarantees a choice of its quality when you cleanse it.
 - Quality versions only come from the DLC's own sources (Concept Reliquaries, the Hand of Death, Hallowed Shrines, Compulsions, trials), through Quality's normal quality chance. Never from quality chests or printers.
 
 ### Hallowed items
@@ -92,7 +92,7 @@ Values are Uncommon / Rare / Epic / Legendary.
 | Corpse Lily | Enemies that die inside the cloud add 0.5 / 1 / 2.5 / 5% Teleporter charge and burst, spreading Blight within 3 / 5 / 8 / 12m |
 | Dream Crucible | When it saves an item, 10 / 20 / 50 / 90% chance it isn't used up (or put on cooldown) itself. Restores itself 10 / 7 / 4 / 2 minutes after being consumed |
 | Earthbound Vessel | Each unused jump grants +2 / 4 / 8 / 15% movement speed, attack speed and damage, plus crit and regeneration. On the ground, each unused jump slows enemies within 8 / 10 / 14 / 20m by 4 / 8 / 15 / 25% |
-| Infernal Mark | Brands after 8 / 7 / 5 / 3 hits. **Infernal Fervor**: +2 / 4 / 10 / 20% damage and attack speed per enemy you have branded. 8 / 7 / 5 / 4 branded at once are all executed (not bosses). Branded enemies take +25 / 50 / 125 / 250% damage from their allies |
+| Infernal Mark | Brands after 8 / 7 / 5 / 3 hits. +2 / 4 / 10 / 20% damage and attack speed per enemy you have branded. 8 / 7 / 5 / 4 branded at once are all executed (not bosses). Branded enemies take +25 / 50 / 125 / 250% damage from their allies |
 | Nightmare Demon | Demons are x1.25 / 1.5 / 2 / 3 bigger and explode for 750 / 900 / 1500 / 2400%. If the host dies first, 25 / 40 / 70 / 100% chance the demon jumps to a nearby enemy, keeping its charge |
 | Ritual Helmet | Skulls stun the enemies they hit for 0.4 / 0.8 / 2 / 4s, multiplied by how far above sprint speed you are (up to 6s) |
 | Sanguine Chalice | 15 / 20 / 35 / 60% bleed chance; bleed heals 0.6 / 0.7 / 1 / 1.5% max health per tick. Healing at full health is stored as blood (up to 50 / 75 / 125 / 200% max health); starting to sprint releases it as a blood wave dealing 200 / 400 / 1000 / 2000% of it |
@@ -129,7 +129,7 @@ Not covered: N'tormat Pages, the DLC's boss items and equipment, and the Seed of
 
 - **Multiplayer:** every player needs the mod. Effects run on the host.
 - **Config:** rewritten descriptions use Starstorm 2's default values. If you changed Starstorm 2's item config, the effects still use your values, but some descriptions will show the defaults.
-- **Settings:** the Quality Hand of Death chance is in the config file, and in-game with [Risk of Options](https://thunderstore.io/c/riskofrain2/p/Rune580/Risk_Of_Options/) (optional).
+- **Settings:** the chance of a quality Hand of Death is in the config file, and in-game with [Risk of Options](https://thunderstore.io/c/riskofrain2/p/Rune580/Risk_Of_Options/) (optional).
 - **DpsMeter:** damage from quality effects is credited to their item in [DpsMeter](https://thunderstore.io/c/riskofrain2/p/noctilucentgames/DpsMeter/)'s breakdown.
 - Buff tooltips have proper names and descriptions with [LookingGlass](https://thunderstore.io/c/riskofrain2/p/DropPod/LookingGlass/).
 

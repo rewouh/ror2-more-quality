@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.4.1
+
+- Mod page wording: effects are described, not named.
+
 ## 0.4.0
 
 - **Quality Hexes reworked.** A quality Hex keeps its normal effect and adds a new twist that changes how you play, instead of just being stronger:
